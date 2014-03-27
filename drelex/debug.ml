@@ -31,32 +31,30 @@ let string_of_label varmap x =
     varmap.( x - 1)
 
 
-let show ?(pre="") varmap input states =
-  match states with
-  | (p, env, pos) ->
-      let is_final =
-        if Language.nullable p = Yes then
-          "\t(FINAL)"
-        else
-          ""
-      in
-      print_endline (
-        "  state: " ^
-        pre ^
-        string_of_pattern varmap p ^
-        is_final
-      );
-      print_endline (
-        "  env:   [" ^
-        String.concat ", " (
-          List.rev_map (fun (x, (Pos (start_p, end_p))) ->
-            Printf.sprintf "(%s: \"%s\")"
-              (string_of_label varmap x)
-              (String.escaped (String.sub input start_p (end_p - start_p + 1)))
-          ) env
-        ) ^
-        "]"
-      )
+let show ?(pre="") varmap input p env pos =
+  let is_final =
+    if Language.nullable p = Yes then
+      "\t(FINAL)"
+    else
+      ""
+  in
+  print_endline (
+    "  state: " ^
+    pre ^
+    string_of_pattern varmap p ^
+    is_final
+  );
+  print_endline (
+    "  env:   [" ^
+    String.concat ", " (
+      List.rev_map (fun (x, (Pos (start_p, end_p))) ->
+        Printf.sprintf "(%s: \"%s\")"
+          (string_of_label varmap x)
+          (String.escaped (String.sub input start_p (end_p - start_p + 1)))
+      ) env
+    ) ^
+    "]"
+  )
 
 
 let show_list ?(pre="") varmap input states =

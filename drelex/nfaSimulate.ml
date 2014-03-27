@@ -4,24 +4,36 @@ open Nfa
 let _trace_run = false
 let _trace_lex = true
 
+type 'tag nfa = {
+  seen      : Bitset.t;
+  final     : Bitset.t;
+  nfa       : (int * int Instruction.t) list array;
+  input     : string;
+  len       : int;
+  varmap    : 'tag array;
+  inversion : int Types.pattern array;
+  mutable last_final : int * Types.env;
+  mutable last_pos   : int;
+}
+
+
+let rec update_envs0 seen pos env states = function
+  | (pd, f) :: tl ->
+      let states =
+        if Bitset.mem seen pd then (
+          states
+        ) else (
+          Bitset.set seen pd;
+          (* This is slow if there are many states. *)
+          states @ [(pd, Instruction.execute f pos env)]
+        )
+      in
+      update_envs0 seen pos env states tl
+
+  | [] ->
+      states
 
 let update_envs seen pos env states next =
-  let rec update_envs0 seen pos env states = function
-    | (pd, f) :: tl ->
-        let states =
-          if Bitset.mem seen pd then (
-            states
-          ) else (
-            Bitset.set seen pd;
-            (* This is slow if there are many states. *)
-            states @ [(pd, Instruction.execute f pos env)]
-          )
-        in
-        update_envs0 seen pos env states tl
-
-    | [] ->
-        states
-  in
   update_envs0 seen pos env states next
 
 
@@ -30,7 +42,7 @@ let goto_next_states nfa pos c curr_states =
     match curr_states with
     | (state, env) :: tl ->
         (* find all transitions on 'c' for 'state' *)
-        let next = Array.unsafe_get nfa.nfa (state * 256 + (Char.code c)) in
+        let next = Array.unsafe_get nfa.nfa (state * CharClass.set_end + (Char.code c)) in
 
         if _trace_run then (
           Printf.printf "state %d -> [%s]\n"
@@ -64,7 +76,7 @@ let iteration nfa pos states c =
 
 let rec update_final nfa pos = function
   | (p, _ as state) :: states ->
-      if Bitset.mem nfa.nullable p then (
+      if Bitset.mem nfa.final p then (
         nfa.last_final <- state;
         nfa.last_pos <- pos;
       ) else (
@@ -74,7 +86,7 @@ let rec update_final nfa pos = function
       ()
 
 
-let rec main_loop inversion varmap nfa pos states =
+let rec main_loop nfa pos states =
   if _trace_run then
     print_newline ();
 
@@ -85,33 +97,37 @@ let rec main_loop inversion varmap nfa pos states =
     let states = iteration nfa pos states c in
 
     if _trace_run then (
-      Printf.printf "after %s: in %d states\n" (Char.escaped c) (List.length states);
-      Debug.show_internal inversion varmap nfa.input states;
+      Printf.printf "after %s: in %d states\n"
+        (Char.escaped c)
+        (List.length states);
+      Debug.show_internal nfa.inversion nfa.varmap nfa.input states;
     );
 
     update_final nfa pos states;
 
-    main_loop inversion varmap nfa (pos + 1) states
+    main_loop nfa (pos + 1) states
 
 
-let run seen inversion varmap nfa nullable start input pos =
+let run seen inversion varmap nfa final start input pos =
   let nfa = {
     nfa;
-    nullable;
+    final;
     seen;
     input;
     len = String.length input;
+    varmap;
+    inversion;
     last_final = (-1, []);
     last_pos = -1;
   } in
 
-  main_loop inversion varmap nfa pos [start, Types.empty_env]
+  main_loop nfa pos [(start, Types.empty_env)]
 
 
-let run_optimised pos { o_nfa; o_start; o_inversion; o_nullable; } seen varmap input =
+let run_optimised pos { o_nfa; o_start; o_inversion; o_final; } seen varmap input =
   let result =
 (*  Debug.time "run" (fun () -> *)
-    run seen o_inversion varmap o_nfa o_nullable o_start input pos
+    run seen o_inversion varmap o_nfa o_final o_start input pos
 (*  ) *)
   in
   result
@@ -125,18 +141,12 @@ let rec run_optimised_loop pos nfa seen varmap input =
       ()
   | ((state, env), pos) ->
       if _trace_lex then
-        (nfa.o_inversion.(state), env, pos)
-        |> Debug.show varmap input;
+        Debug.show varmap input nfa.o_inversion.(state) env pos;
       run_optimised_loop (pos + 1) nfa seen varmap input
 
 
-
-type env_nfa = int optimised_nfa
-  deriving (Show)
-
-
 let run_loop_opt pos nfa varmap input =
-  let seen = Bitset.create (Array.length nfa.o_nfa / 256) in
+  let seen = Bitset.create (Array.length nfa.o_nfa / CharClass.set_end) in
   Debug.time "hashcons" (fun () ->
     run_optimised_loop pos nfa seen varmap input
   )

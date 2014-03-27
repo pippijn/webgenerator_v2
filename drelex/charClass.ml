@@ -1,6 +1,6 @@
 open Ast
 
-let set_begin = 1
+let set_begin = 0
 let set_end   = 256
 
 let of_array =

@@ -13,7 +13,7 @@ let format = (upper as kind) '<' ([^'<''>']+ as text) '>'
 
 let space = [' ''\t']
 let word = ~( _* (format|space|'\n') _* )
-(*let word = [^'\n' ''<''>']+*)
+(*let word = [^' ''\t''\n''<''>']+*)
 
 
 rule token = parse
@@ -34,6 +34,7 @@ rule token = parse
 
 | '\n'					{ NEWLINE }
 | space+				{ SPACE }
+| (word as word) format			{ WORD word }
 | word as word				{ WORD word }
 
 | eof					{ EOF }

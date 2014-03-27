@@ -75,7 +75,7 @@ let cardinal (nfa, start) =
 let optimised (nfa, start) =
   let nstates = Hashtbl.length nfa in
 
-  let o_nullable = Bitset.create nstates in
+  let o_final = Bitset.create nstates in
 
   (* first, build hashcons and nullable bitset *)
   let hashcons = Hashtbl.create nstates in
@@ -84,7 +84,7 @@ let optimised (nfa, start) =
     let id = Hashtbl.length hashcons in
     Hashtbl.add hashcons p id;
     if Language.nullable p = Yes then
-      Bitset.set o_nullable id;
+      Bitset.set o_final id;
   ) nfa;
 
   (* and the inversion *)
@@ -107,4 +107,4 @@ let optimised (nfa, start) =
 
   let o_start = Hashtbl.find hashcons start in
 
-  { o_nfa; o_start; o_inversion; o_nullable; }
+  { o_nfa; o_start; o_inversion; o_final; }
