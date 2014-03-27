@@ -36,6 +36,7 @@ type regexp =
   | Question of regexp                  (* regexp? *)
   | Star of regexp                      (* regexp* *)
   | Plus of regexp                      (* regexp+ *)
+  | Negation of regexp                  (* ~regexp *)
   | Quantified of regexp
                 * int option
                 * int option            (* regexp{1,5} *)

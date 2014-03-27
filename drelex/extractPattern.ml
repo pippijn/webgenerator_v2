@@ -40,6 +40,8 @@ let rec extract_pattern = function
       LetterSet set
   | Star re ->
       Types.Star (extract_pattern re)
+  | Negation re ->
+      Not (Maybe, extract_pattern re)
   | Binding (re, name) ->
       (*Printf.printf "%s\ncontains binding: %s\n"*)
         (*(Sexplib.Sexp.to_string_hum (sexp_of_regexp re))*)

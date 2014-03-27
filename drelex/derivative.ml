@@ -22,15 +22,6 @@ let (&&&) a b =
   | Maybe, _ -> failwith "Maybe in &&&"
 
 
-let rec exprset_of_regex = function
-  | Intersect (_, r1, r2) -> exprset_of_regex r1 @ exprset_of_regex r2
-  | r -> [r]
-
-let rec exprsets_of_regex = function
-  | Choice (_, r1, r2) -> exprsets_of_regex r1 @ exprsets_of_regex r2
-  | r -> [exprset_of_regex r]
-
-
 let rec pattern_of_exprset = function
   | [] -> failwith "empty exprset" (* Phi? *)
   | [p] -> p
@@ -132,19 +123,6 @@ let mul_exprsets_expr_iter iterate p1ss p2 =
 
 (* circled ∩ *)
 let intersect_exprsets ess fss =
-  let fun_1 fss es =
-    (* for each F set, combine with the E set *)
-    mapx1 set_union es fss
-  in
-  let union =
-    (* for each E set *)
-    mapx1 fun_1 fss ess
-  in
-  (* unite every es with every fs *)
-  Util.reduce set_union union
-
-
-let intersect_exprsets_pat ess fss =
   let fun_2 (es, e_tag) (fs, f_tag) =
     (* combine the two sets and associated
      * transition functions *)
@@ -162,15 +140,15 @@ let intersect_exprsets_pat ess fss =
   Util.reduce set_union_pat union
 
 
-let sigma_star = [[Not (Yes, Phi)]]
+let sigma_star = [[Not (Yes, Phi)], Instruction.identity]
 (* circled ¬ *)
 let not_exprsets = function
   | [] -> sigma_star
   | sets ->
       let fun_2 e =
-        [Not (not3 (Language.nullable e), e)]
+        [Not (not3 (Language.nullable e), e)], Instruction.identity
       in
-      let fun_1 set =
+      let fun_1 (set, _) =
         List.map fun_2 set
       in
       Util.reduce intersect_exprsets (
@@ -187,8 +165,10 @@ let simplify =
 *)
 
 
+let epsilon = [[Epsilon], Instruction.identity]
+
 (* ·\p· :: l -> p -> [p] *)
-let rec derive_pat l p =
+let rec derive_pat l p : Types.ExprsetTbl.key list =
   List.map (fun (p, t) ->
     List.map SimplifyPattern.simplify p, t
   )
@@ -207,14 +187,14 @@ let rec derive_pat l p =
       derive_Repeat1 l p
   | Repeat (null, p, n) ->
       derive_Repeat l null p n
-  | Not _ ->
-      failwith "Negation in pattern must be resolved before derivation"
+  (* 6 *)
+  | Not (_, p) ->
+      let p' = derive_pat l p in
+      not_exprsets p'
 
   (* 2 *)
-  | LetterSet set when CharSet.mem set l ->
-      [[Epsilon], Instruction.nop]
-  | Letter l2 when l = l2 ->
-      [[Epsilon], Instruction.nop]
+  | LetterSet set when CharSet.mem set l -> epsilon
+  | Letter l2 when l = l2 -> epsilon
   (* 1 *)
   | Phi
   | Epsilon
@@ -232,7 +212,7 @@ and derive_VarGroup l x p =
   ) x update (derive_pat l p)
 
 and derive_Choice l p1 p2 =
-  set_union
+  set_union_pat
     (derive_pat l p1)
     (derive_pat l p2)
 
@@ -247,7 +227,7 @@ and derive_Concat l p1 p2 =
     p1'p2
 
 and derive_Intersect l p1 p2 =
-  intersect_exprsets_pat
+  intersect_exprsets
     (derive_pat l p1)
     (derive_pat l p2)
 

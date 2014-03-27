@@ -54,7 +54,7 @@ type 'label exprset = 'label pattern list
 type 'label exprsets = ('label exprset * (int -> env -> env)) list
 
 type 'label instruction =
-  | Nop
+  | Identity
   | Update of 'label
   | Iterate of 'label list
   | Compose of 'label instruction * 'label instruction

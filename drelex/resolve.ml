@@ -58,6 +58,8 @@ let rec resolve_regexp map = function
   | Plus re -> Plus (resolve_regexp map re)
   (* a* *)
   | Star re -> Star (resolve_regexp map re)
+  (* ~a *)
+  | Negation re -> Negation (resolve_regexp map re)
   (* a as name *)
   | Binding (re, name) -> Binding (resolve_regexp map re, name)
 

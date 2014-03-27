@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 1f4064fe42880c65fc491d0fd4a652cf) *)
+(* DO NOT EDIT (digest: ce378fa98cd465ad87ba4861d38e1724) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -595,14 +595,13 @@ end
 open Ocamlbuild_plugin;;
 let package_default =
   {
-     MyOCamlbuildBase.lib_ocaml =
-       [("webgen", ["webgen"], []); ("parsers", ["parsers"], [])];
+     MyOCamlbuildBase.lib_ocaml = [("webgen", ["webgen"], [])];
      lib_c = [("webgen", "webgen", [])];
      flags = [];
-     includes = [("generator", ["parsers"; "webgen"])]
+     includes = []
   }
   ;;
 let dispatch_default = MyOCamlbuildBase.dispatch_default package_default;;
-# 609 "myocamlbuild.ml"
+# 608 "myocamlbuild.ml"
 (* OASIS_STOP *)
 Ocamlbuild_plugin.dispatch dispatch_default;;

@@ -48,6 +48,7 @@
     | TOK_UNDERLINE -> "TOK_UNDERLINE"
     | TOK_EOF -> "TOK_EOF"
 
+    | TOK_TILDE -> "TOK_TILDE"
     | TOK_PIPE -> "TOK_PIPE"
     | TOK_CARET -> "TOK_CARET"
     | TOK_MINUS -> "TOK_MINUS"
@@ -186,6 +187,7 @@ and normal state = parse
 					  Buffer.add_char state.code '{';
 					  verbatim state lexbuf
 					}
+| '~'					{ TOK_TILDE }
 | '^'					{ TOK_CARET }
 | '?'					{ TOK_QUESTION }
 | '*'					{ TOK_STAR }

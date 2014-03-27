@@ -11,6 +11,10 @@ let alnum = (alpha | digit)
 
 let format = (upper as kind) '<' ([^'<''>']+ as text) '>'
 
+let space = [' ''\t']
+let word = ~( _* (format|space|'\n') _* )
+(*let word = [^'\n' ''<''>']+*)
+
 
 rule token = parse
 | "=head" (digit+ as level)		{ HEAD (int_of_string level) }
@@ -28,10 +32,9 @@ rule token = parse
     ([^'>']+ as link) '>'		{ LINK (title, link) }
 | format				{ FORMAT (kind, text) }
 
-| '\r'					{ token lexbuf }
 | '\n'					{ NEWLINE }
-| [' ''\t']+				{ SPACE }
-| [^' ''\t''\n''<''>']+ as word		{ WORD word }
+| space+				{ SPACE }
+| word as word				{ WORD word }
 
 | eof					{ EOF }
 | _ as c				{ failwith (Char.escaped c) }

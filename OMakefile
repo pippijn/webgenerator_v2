@@ -8,8 +8,8 @@ SOURCES = $(foreach DIR => $(find $(DIR) -name *), $(SUBDIRS))
 
 SETUP = _build/setup.native
 
-.DEFAULT: generator.byte
-generator.byte: $(SETUP) $(SOURCES) _tags myocamlbuild.ml setup.data
+.DEFAULT: _build
+_build: $(SETUP) $(SOURCES) _tags myocamlbuild.ml setup.data
   $(SETUP) -build
 
 setup.data: $(SETUP)
@@ -24,3 +24,4 @@ myocamlbuild.ml setup.ml: _oasis
 .PHONY: clean
 clean:
   ocamlbuild -clean
+  #rm *.bak

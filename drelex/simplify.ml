@@ -71,6 +71,7 @@ let rec simplify_regexp = function
   | Sequence list -> Sequence (List.map simplify_regexp list)
   | Alternation list -> Alternation (List.map simplify_regexp list)
   | Star re -> Star (simplify_regexp re)
+  | Negation re -> Negation (simplify_regexp re)
   | Binding (re, name) -> Binding (simplify_regexp re, name)
 
 (*

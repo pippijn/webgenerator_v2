@@ -23,6 +23,7 @@
 %token <Ast.str>	TOK_LIT_CODE
 
 /* punctuators */
+%token TOK_TILDE		/* "~"	*/
 %token TOK_CARET		/* "^"	*/
 %token TOK_QUESTION		/* "?"	*/
 %token TOK_STAR			/* "*"	*/
@@ -91,6 +92,7 @@ sequence
 
 regexp
 	: atom quantifier				{ $2 $1 }
+	| TOK_TILDE atom				{ Negation $2 }
 
 
 quantifier

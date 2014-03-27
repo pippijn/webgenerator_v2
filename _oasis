@@ -6,19 +6,19 @@ Authors:     Pippijn van Steenhoven
 License:     GPL
 
 
-Executable generator
-  Path:            generator
-  BuildTools:      ocamlbuild
-  BuildDepends:    webgen, parsers
-  CompiledObject:  byte
-  MainIs:          generator.ml
+#Executable generator
+#  Path:            generator
+#  BuildTools:      ocamlbuild
+#  BuildDepends:    webgen, parsers
+#  CompiledObject:  byte
+#  MainIs:          generator.ml
 
 
 Executable drelex
   Path:            drelex
   BuildTools:      ocamlbuild
   BuildDepends:    deriving-ocsigen.syntax, deriving-ocsigen, batteries
-  CompiledObject:  byte
+  CompiledObject:  native
   MainIs:          drelex.ml
 
 
@@ -36,11 +36,11 @@ Library webgen
   CompiledObject:  byte
 
 
-Library parsers
-  Path:            parsers
-  BuildTools:      ocamlbuild
-  Modules:         Pod,
-                   PodLexer,
-                   PodParser
-  CompiledObject:  byte
-  Pack:            true
+#Library parsers
+#  Path:            parsers
+#  BuildTools:      ocamlbuild
+#  Modules:         Pod,
+#                   PodLexer,
+#                   PodParser
+#  CompiledObject:  byte
+#  Pack:            true
