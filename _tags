@@ -1,0 +1,43 @@
+# OASIS_START
+# DO NOT EDIT (digest: c279a47e8072ad1c79ecaaefe2e99783)
+# Ignore VCS directories, you can use the same kind of rule outside
+# OASIS_START/STOP if you want to exclude directories that contains
+# useless stuff for the build process
+<**/.svn>: -traverse
+<**/.svn>: not_hygienic
+".bzr": -traverse
+".bzr": not_hygienic
+".hg": -traverse
+".hg": not_hygienic
+".git": -traverse
+".git": not_hygienic
+"_darcs": -traverse
+"_darcs": not_hygienic
+# Executable drelex
+"drelex/drelex.byte": pkg_batteries
+"drelex/drelex.byte": pkg_deriving-ocsigen
+"drelex/drelex.byte": pkg_deriving-ocsigen.syntax
+<drelex/*.ml{,i}>: pkg_batteries
+<drelex/*.ml{,i}>: pkg_deriving-ocsigen
+<drelex/*.ml{,i}>: pkg_deriving-ocsigen.syntax
+# Library webgen
+"webgen/webgen.cmxs": use_webgen
+"webgen/webgen.cma": use_libwebgen_stubs
+<webgen/*.ml{,i}>: pkg_unix
+"webgen/ml_Cwd.c": pkg_unix
+# Library parsers
+"parsers/parsers.cmxs": use_parsers
+"parsers/pod.cmx": for-pack(Parsers)
+"parsers/podLexer.cmx": for-pack(Parsers)
+"parsers/podParser.cmx": for-pack(Parsers)
+# Executable generator
+"generator/generator.byte": pkg_unix
+"generator/generator.byte": use_parsers
+"generator/generator.byte": use_webgen
+<generator/*.ml{,i}>: pkg_unix
+<generator/*.ml{,i}>: use_parsers
+<generator/*.ml{,i}>: use_webgen
+# OASIS_STOP
+
+true: debug, annot
+true: use_menhir

@@ -1,0 +1,46 @@
+OASISFormat: 0.4
+Name:        webgenerator
+Version:     0.2
+Synopsis:    Web generator
+Authors:     Pippijn van Steenhoven
+License:     GPL
+
+
+Executable generator
+  Path:            generator
+  BuildTools:      ocamlbuild
+  BuildDepends:    webgen, parsers
+  CompiledObject:  byte
+  MainIs:          generator.ml
+
+
+Executable drelex
+  Path:            drelex
+  BuildTools:      ocamlbuild
+  BuildDepends:    deriving-ocsigen.syntax, deriving-ocsigen, batteries
+  CompiledObject:  byte
+  MainIs:          drelex.ml
+
+
+Library webgen
+  Path:            webgen
+  BuildTools:      ocamlbuild
+  BuildDepends:    unix
+  Modules:         Cwd,
+                   DirSelf,
+                   FileFind,
+                   FilePath,
+                   FileUtil,
+                   Prelude
+  CSources:        ml_Cwd.c
+  CompiledObject:  byte
+
+
+Library parsers
+  Path:            parsers
+  BuildTools:      ocamlbuild
+  Modules:         Pod,
+                   PodLexer,
+                   PodParser
+  CompiledObject:  byte
+  Pack:            true

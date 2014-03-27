@@ -1,0 +1,26 @@
+SUBDIRS[] =
+  drelex
+  generator
+  parsers
+  webgen
+
+SOURCES = $(foreach DIR => $(find $(DIR) -name *), $(SUBDIRS))
+
+SETUP = _build/setup.native
+
+.DEFAULT: generator.byte
+generator.byte: $(SETUP) $(SOURCES) _tags myocamlbuild.ml setup.data
+  $(SETUP) -build
+
+setup.data: $(SETUP)
+  $(SETUP) -configure
+
+$(SETUP): setup.ml
+  ocamlbuild setup.native
+
+myocamlbuild.ml setup.ml: _oasis
+  oasis setup
+
+.PHONY: clean
+clean:
+  ocamlbuild -clean
