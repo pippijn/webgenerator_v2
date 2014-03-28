@@ -51,17 +51,33 @@ let empty_env : env = []
 type 'label exprset = 'label pattern list
 type 'label exprsets = ('label exprset * (int -> env -> env)) list
 
-type 'label instruction =
+type instruction =
   | Identity
-  | Update  of 'label
-  | Iterate of 'label list
-  | Compose of 'label instruction * 'label instruction
+  | Update  of int
+  | Iterate of int list
+  | Compose of instruction * instruction
   deriving (Show)
 
 
-module ExprsetTbl = Hashtbl.Make(struct
+module type TagType = sig
+  type t
+    deriving (Show)
 
-  type t = (int exprset * int instruction)
+  val compose : t -> t -> t
+  val identity : t
+  val update : int -> t
+  val iterate : int pattern -> t
+  val to_string : (int -> string) -> t -> string
+  val execute : t -> int -> env -> env
+    (* Execute transition actions. *)
+  val compile : t -> int -> env -> env
+    (* Compile tag to function for executing transition actions.
+       Can be assumed to be called only once for each action. *)
+end
+
+module ExprsetTbl(T : TagType) = Hashtbl.Make(struct
+
+  type t = (int exprset * T.t)
 
   let equal (a, _) (b, _) =
     a = b

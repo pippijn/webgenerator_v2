@@ -1,7 +1,18 @@
 open Types
 
+type t = int -> env -> env
 
-let rec update x pos = function
+module Show_t = Deriving_Show.Defaults(struct
+
+  type a = t
+
+  let format fmt _ =
+    Format.pp_print_string fmt "<fun>"
+
+end)
+
+
+let rec update x : t = fun pos -> function
   | [] -> raise Not_found
   | (y, position) :: env ->
       if y = x then
@@ -11,21 +22,24 @@ let rec update x pos = function
         (y, position) :: update x pos env
 
 
-let update x pos l =
+let update x : t = fun pos l ->
   try
     update x pos l
   with Not_found ->
     (x, encode_pos pos pos) :: l
 
 
-let rename vars pos =
+let rename vars : t = fun pos l ->
   (* rename the previous match *)
   List.map (fun (x, w) ->
-    if List.mem x vars then
+    if List.memq x vars then
       (-x, w)
     else
       ( x, w)
-  )
+  ) l
+
+
+let identity pos a = a
 
 
 let iterate p =
@@ -33,12 +47,15 @@ let iterate p =
   rename (Pattern.vars_of_pattern p)
 
 
-let compose f g =
+let compose f g : t =
   fun pos env -> f pos (g pos env)
 
 
 let execute f pos env =
   f pos env
+
+
+let compile f = f
 
 
 let to_string varmap f = ""

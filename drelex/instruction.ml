@@ -1,6 +1,7 @@
 open Types
 
-type 'a t = 'a instruction
+type t = instruction
+  deriving (Show)
 
 let identity = Identity
 let update x = Update x
@@ -12,6 +13,15 @@ let compose f g =
       f
   | f, g ->
       Compose (f, g)
+
+let rec compile f =
+  match f with
+  | Identity -> Transition.identity
+  | Update x -> Transition.update x
+  | Iterate vars -> Transition.rename vars
+  | Compose (Identity, f)
+  | Compose (f, Identity) -> compile f
+  | Compose (f, g) -> Transition.compose (compile f) (compile g)
 
 let rec execute f pos env =
   match f with

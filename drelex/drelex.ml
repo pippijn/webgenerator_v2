@@ -108,8 +108,7 @@ let () =
 
       let fh = open_in input in
       let lexbuf = Lexing.from_channel fh in
-      NfaSimulate.run_loop_opt Util.identity nfa varmap lexbuf;
-      (*NfaSimulate.run_loop_opt nfa varmap (slurp fh);*)
+      NfaSimulate.run Util.identity nfa varmap lexbuf;
       close_in fh
 
   | _ ->

@@ -2,6 +2,9 @@ open Types
 open Tribool
 
 
+module ExprsetTbl = Types.ExprsetTbl(Tag)
+
+
 let rec pattern_of_exprset = function
   | [] -> failwith "empty exprset" (* Phi? *)
   | [p] -> p
@@ -96,7 +99,7 @@ let mul_exprsets_expr_iter iterate p1ss p2 =
     Concat (Language.nullable p1 &&& Language.nullable p2, p1, p2)
   in
   let fun_1 p2 iterate (p1s, f) =
-    (mapx1 fun_2 p2 p1s, Instruction.compose f iterate)
+    (mapx1 fun_2 p2 p1s, Tag.compose f iterate)
   in
   mapx2 fun_1 p2 iterate p1ss
 
@@ -106,7 +109,7 @@ let intersect_exprsets ess fss =
   let fun_2 (es, e_tag) (fs, f_tag) =
     (* combine the two sets and associated
      * transition functions *)
-    set_union es fs, Instruction.compose e_tag f_tag
+    set_union es fs, Tag.compose e_tag f_tag
   in
   let fun_1 fss es =
     (* for each F set *)
@@ -120,13 +123,13 @@ let intersect_exprsets ess fss =
   Util.reduce set_union_pat union
 
 
-let sigma_star = [[Not (Yes, Phi)], Instruction.identity]
+let sigma_star = [[Not (Yes, Phi)], Tag.identity]
 (* circled ¬ *)
 let not_exprsets = function
   | [] -> sigma_star
   | sets ->
       let fun_2 e =
-        [Not (not3 (Language.nullable e), e)], Instruction.identity
+        [Not (not3 (Language.nullable e), e)], Tag.identity
       in
       let fun_1 (set, _) =
         List.map fun_2 set
@@ -145,10 +148,10 @@ let simplify =
 *)
 
 
-let epsilon = [[Epsilon], Instruction.identity]
+let epsilon = [[Epsilon], Tag.identity]
 
 (* ·\p· :: l -> p -> [p] *)
-let rec derive_pat l p : Types.ExprsetTbl.key list =
+let rec derive_pat l p : ExprsetTbl.key list =
   List.map (fun (p, t) ->
     List.map SimplifyPattern.simplify p, t
   )
@@ -184,11 +187,11 @@ let rec derive_pat l p : Types.ExprsetTbl.key list =
   end
 
 and derive_VarGroup l x p =
-  let update = Instruction.update x in
+  let update = Tag.update x in
   mapx2 (fun x update (p', f) ->
     let p' = pattern_of_exprset p' in
     [VarGroup (Language.nullable p', x, p')],
-    Instruction.compose update f
+    Tag.compose update f
   ) x update (derive_pat l p)
 
 and derive_Choice l p1 p2 =
@@ -212,18 +215,18 @@ and derive_Intersect l p1 p2 =
     (derive_pat l p2)
 
 and derive_Star l p star =
-  let iterate = Instruction.iterate p in
+  let iterate = Tag.iterate p in
   mul_exprsets_expr_iter iterate (derive_pat l p) star
 
 and derive_Repeat1 l p =
-  let iterate = Instruction.iterate p in
+  let iterate = Tag.iterate p in
   mapx1 (fun iterate (p', f) ->
-    p', Instruction.compose f iterate
+    p', Tag.compose f iterate
   ) iterate (derive_pat l p)
 
 and derive_Repeat l null p n =
   assert (n > 1);
-  let iterate = Instruction.iterate p in
+  let iterate = Tag.iterate p in
   let repeat = Repeat (null, p, n - 1) in
   mul_exprsets_expr_iter iterate (derive_pat l p) repeat
 

@@ -34,7 +34,7 @@ let transitions string_of_tag varmap p =
       List.iter (fun (pd, f) ->
         Printf.printf "    %-30s\t%s\n"
           (Debug.string_of_pattern string_of_tag varmap pd)
-          (Instruction.to_string (Debug.string_of_label string_of_tag varmap) f)
+          (Tag.to_string (Debug.string_of_label string_of_tag varmap) f)
       ) pds;
     );
 

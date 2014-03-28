@@ -13,7 +13,7 @@ let rec update_envs0 seen pos env states = function
         ) else (
           Bitset.set seen pd;
           (* This is slow if there are many states. *)
-          states @ [(pd, Instruction.execute f pos env)]
+          states @ [(pd, Tag.execute f pos env)]
         )
       in
       update_envs0 seen pos env states tl
@@ -137,7 +137,7 @@ let rec backtrack_loop nfa =
   )
 
 
-let run_loop_opt string_of_tag nfa varmap lexbuf =
+let run string_of_tag nfa varmap lexbuf =
   lexbuf.lex_curr_pos <- 0;
   lexbuf.lex_last_pos <- 0;
 
