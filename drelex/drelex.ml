@@ -65,8 +65,16 @@ let () =
   | [|_; mll; input|] ->
       let ast =
         try
-          let fh = open_in Sys.argv.(1) in
-          let lexbuf = Lexing.from_channel fh in
+          let fh = open_in mll in
+          let lexbuf =
+            let open Lexing in
+            let lexbuf = Lexing.from_channel fh in
+            lexbuf.lex_curr_p <- {
+              lexbuf.lex_curr_p with
+              pos_fname = mll;
+            };
+            lexbuf
+          in
           let ast = Oparser.parse Olexer.(token (make ())) lexbuf in
           close_in fh;
           ast
@@ -102,6 +110,9 @@ let () =
           NfaConstruct.optimised nfa, varmap
         ) nfas
       in
+
+      Diagnostics.print ();
+      Diagnostics.exit_on_error ();
 
       let nfa, varmap = List.hd nfas in
 

@@ -12,21 +12,40 @@ type diagnostic = {
 }
 
 
+let want_colour = Unix.(isatty stdout)
+let want_colour = true
+
+
 let string_of_severity terminal =
   let module T = (val terminal : TermColour.S) in
   let module Colour = TermColour.Make(T) in
 
   let open Colour in function
-  | Info    -> cyan   "Info"
-  | Warning -> yellow "Warning"
-  | Error   -> red    "Error"
+  | Info    -> bcyan "info"
+  | Warning -> bpink "warning"
+  | Error   -> bred  "error"
 
 
 let string_of_severity =
-  if Unix.(isatty stdout) then
+  if want_colour then
     string_of_severity (module TermColour.ANSI : TermColour.S)
   else
     string_of_severity (module TermColour.None : TermColour.S)
+
+
+let message_colour terminal =
+  let module T = (val terminal : TermColour.S) in
+  let module Colour = TermColour.Make(T) in
+
+  let open Colour in
+  fun msg -> bwhite msg
+
+
+let message_colour =
+  if want_colour then
+    message_colour (module TermColour.ANSI : TermColour.S)
+  else
+    message_colour (module TermColour.None : TermColour.S)
 
 
 exception Exit
@@ -63,8 +82,8 @@ let print () =
 
   Stack.iter (fun { severity; location; message } ->
     (* show diagnostic on stdout *)
-    Printf.printf "%s:\n%s: %s\n"
-      (Sloc.to_string location)
+    Printf.printf "%s: %s: %s\n"
+      (Sloc.to_string location |> message_colour)
       (string_of_severity severity)
-      message
+      (message_colour message)
   ) reverse

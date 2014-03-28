@@ -61,23 +61,24 @@
 
 /* start symbol */
 parse
-	: code? lexeme* lexers code? EOF		{ Program ($1, $2, $3, $4) }
+	: code? named_regexp* lexers code? EOF		{ Program ($1, $2, $3, $4) }
 
 
 parse_regexp
-	: intersection EOF				{ $1 }
+	: alternation EOF				{ $1 }
 
 
 code
 	: TOK_LIT_CODE					{ $1 }
 
 
-lexeme
+named_regexp
 	: TOK_LET TOK_LNAME TOK_EQUALS alternation	{ Alias ($2, $4) }
 
 
 alternation
-	: or_regexps binding				{ $2 (match $1 with [a] -> a | l -> Alternation (List.rev l)) }
+	: or_regexps					{ match $1 with [a] -> a | l -> Alternation (List.rev l) }
+	| alternation TOK_AS TOK_LNAME			{ Binding ($1, $3) }
 
 
 or_regexps
@@ -113,11 +114,6 @@ quantifier
 
 int
 	: TOK_INTEGER					{ $1 }
-
-
-binding
-	: /* empty */					{ Util.identity }
-	| TOK_AS TOK_LNAME				{ fun r -> Binding (r, $2) }
 
 
 atom
