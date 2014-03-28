@@ -5,3 +5,6 @@ let reduce f = function
 
 let equal_fst a b =
   fst a = fst b
+
+
+let identity a = a

@@ -4,6 +4,8 @@ open Nfa
 let _trace_run = false
 let _trace_lex = true
 
+type state = int * Types.env
+
 type 'tag nfa = {
   seen      : Bitset.t;
   final     : Bitset.t;
@@ -12,7 +14,9 @@ type 'tag nfa = {
   len       : int;
   varmap    : 'tag array;
   inversion : int Types.pattern array;
-  mutable last_final : int * Types.env;
+  start     : state list;
+  string_of_tag : 'tag -> string;
+  mutable last_final : state;
   mutable last_pos   : int;
 }
 
@@ -100,7 +104,11 @@ let rec main_loop nfa pos states =
       Printf.printf "after %s: in %d states\n"
         (Char.escaped c)
         (List.length states);
-      Debug.show_internal nfa.inversion nfa.varmap nfa.input states;
+      Debug.show_internal
+        nfa.string_of_tag nfa.varmap
+        nfa.inversion
+        nfa.input
+        states;
     );
 
     update_final nfa pos states;
@@ -108,45 +116,55 @@ let rec main_loop nfa pos states =
     main_loop nfa (pos + 1) states
 
 
-let run seen inversion varmap nfa final start input pos =
-  let nfa = {
-    nfa;
-    final;
-    seen;
-    input;
-    len = String.length input;
-    varmap;
-    inversion;
-    last_final = (-1, []);
-    last_pos = -1;
-  } in
-
-  main_loop nfa pos [(start, Types.empty_env)]
-
-
-let run_optimised pos { o_nfa; o_start; o_inversion; o_final; } seen varmap input =
-  let result =
-(*  Debug.time "run" (fun () -> *)
-    run seen o_inversion varmap o_nfa o_final o_start input pos
-(*  ) *)
-  in
-  result
-
-
-let rec run_optimised_loop pos nfa seen varmap input =
-  let state = run_optimised pos nfa seen varmap input in
+let rec run_optimised_loop pos nfa input =
+  let state = main_loop nfa pos nfa.start in
 
   match state with
   | ((-1, []), -1) ->
       ()
   | ((state, env), pos) ->
-      if _trace_lex then
-        Debug.show varmap input nfa.o_inversion.(state) env pos;
-      run_optimised_loop (pos + 1) nfa seen varmap input
+      if _trace_lex then (
+        Printf.printf "\027[1;33mLexeme:\027[0m (at pos = %d)\n" pos;
+        Debug.show
+          nfa.string_of_tag nfa.varmap
+          input
+          nfa.inversion.(state)
+          env;
+      );
+      run_optimised_loop (pos + 1) nfa input
 
 
-let run_loop_opt pos nfa varmap input =
+let slurp_lexbuf lexbuf =
+  let open Lexing in
+  while not lexbuf.lex_eof_reached do
+    lexbuf.lex_curr_pos <- lexbuf.lex_buffer_len;
+    lexbuf.refill_buff lexbuf
+  done;
+  String.sub lexbuf.lex_buffer
+    0 lexbuf.lex_buffer_len
+
+
+let run_loop_opt string_of_tag nfa varmap lexbuf =
+  let input = slurp_lexbuf lexbuf in
+
   let seen = Bitset.create (Array.length nfa.o_nfa / CharClass.set_end) in
-  Debug.time "hashcons" (fun () ->
-    run_optimised_loop pos nfa seen varmap input
+
+  let nfa = {
+    nfa        = nfa.o_nfa;
+    final      = nfa.o_final;
+    inversion  = nfa.o_inversion;
+
+    seen;
+    input;
+    varmap;
+    string_of_tag;
+
+    start      = [(nfa.o_start, Types.empty_env)];
+    len        = String.length input;
+    last_final = (-1, []);
+    last_pos   = -1;
+  } in
+
+  Debug.time "run_optimised_loop" (fun () ->
+    run_optimised_loop 0 nfa input
   )

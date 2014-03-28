@@ -216,6 +216,18 @@ and comment level state = parse
 
 {
   let token state lexbuf =
+    if false then (
+      let open Lexing in
+      (*Printf.printf "=> reading '%s'\n"*)
+        (*(Char.escaped lexbuf.lex_buffer.[lexbuf.lex_curr_pos]);*)
+      Printf.printf "buffer_len  = %d\n" lexbuf.lex_buffer_len;
+      Printf.printf "abs_pos     = %d\n" lexbuf.lex_abs_pos;
+      Printf.printf "start_pos   = %d\n" lexbuf.lex_start_pos;
+      Printf.printf "curr_pos    = %d\n" lexbuf.lex_curr_pos;
+      Printf.printf "last_pos    = %d\n" lexbuf.lex_last_pos;
+      Printf.printf "last_action = %d\n" lexbuf.lex_last_action;
+      Printf.printf "eof_reached = %s\n" (string_of_bool lexbuf.lex_eof_reached);
+    );
     let token =
       match state.automaton with
       | Normal   -> normal

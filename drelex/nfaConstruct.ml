@@ -13,10 +13,10 @@ let filter_final states =
   ) states
 
 
-let transitions varmap p =
+let transitions string_of_tag varmap p =
   if _trace_con then (
     Printf.printf "transitions for %s:\n"
-      (Debug.string_of_pattern varmap p);
+      (Debug.string_of_pattern string_of_tag varmap p);
   );
   let transitions_for_char n =
     let chr = Char.chr n in
@@ -33,8 +33,8 @@ let transitions varmap p =
         (Char.escaped chr);
       List.iter (fun (pd, f) ->
         Printf.printf "    %-30s\t%s\n"
-          (Debug.string_of_pattern varmap pd)
-          (Instruction.to_string (Debug.string_of_label varmap) f)
+          (Debug.string_of_pattern string_of_tag varmap pd)
+          (Instruction.to_string (Debug.string_of_label string_of_tag varmap) f)
       ) pds;
     );
 
@@ -43,26 +43,26 @@ let transitions varmap p =
   Array.init 256 transitions_for_char
 
 
-let rec build_next varmap nfa = function
+let rec build_next string_of_tag varmap nfa = function
   | [] -> ()
   | (pd, _) :: xs ->
-      build varmap nfa pd;
-      build_next varmap nfa xs
+      build string_of_tag varmap nfa pd;
+      build_next string_of_tag varmap nfa xs
 
-and build varmap nfa p =
+and build string_of_tag varmap nfa p =
   if not (Hashtbl.mem nfa p) then (
-    let xs = transitions varmap p in
+    let xs = transitions string_of_tag varmap p in
     Hashtbl.add nfa p xs;
     for i = 0 to Array.length xs - 1 do
-      build_next varmap nfa (Array.unsafe_get xs i)
+      build_next string_of_tag varmap nfa (Array.unsafe_get xs i)
     done;
   )
 
 
-let build varmap start =
+let build string_of_tag varmap start =
   Debug.time "build" (fun () ->
     let nfa = Hashtbl.create 10 in
-    build varmap nfa start;
+    build string_of_tag varmap nfa start;
     nfa, start
   )
 

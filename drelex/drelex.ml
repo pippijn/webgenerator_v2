@@ -1,12 +1,61 @@
-let slurp file =
-  let ic = open_in file in
-  let result =
-    let lst = ref [] in
-    try while true do lst := input_line ic :: !lst done; assert false
-    with End_of_file -> List.rev !lst |> String.concat "\n"
+let slurp ic =
+  let lst = ref [] in
+  try while true do lst := input_line ic :: !lst done; assert false
+  with End_of_file -> List.rev !lst |> String.concat "\n"
+
+
+let split chrs lexbuf =
+  let open Lexing in
+
+  let rec split_rec state =
+    if not state then (
+      (* First entry. *)
+      lexbuf.lex_last_pos <- lexbuf.lex_curr_pos;
+      lexbuf.lex_start_pos <- lexbuf.lex_curr_pos;
+    );
+
+    (* See if we need a refill. *)
+    if lexbuf.lex_curr_pos >= lexbuf.lex_buffer_len then
+      if lexbuf.lex_eof_reached then
+        raise End_of_file
+      else
+        lexbuf.refill_buff lexbuf;
+
+    Printf.printf "=> reading '%s'\n"
+      (Char.escaped lexbuf.lex_buffer.[lexbuf.lex_curr_pos]);
+    Printf.printf "buffer_len  = %d\n" lexbuf.lex_buffer_len;
+    Printf.printf "abs_pos     = %d\n" lexbuf.lex_abs_pos;
+    Printf.printf "start_pos   = %d\n" lexbuf.lex_start_pos;
+    Printf.printf "curr_pos    = %d\n" lexbuf.lex_curr_pos;
+    Printf.printf "last_pos    = %d\n" lexbuf.lex_last_pos;
+    Printf.printf "last_action = %d\n" lexbuf.lex_last_action;
+    Printf.printf "eof_reached = %s\n" (string_of_bool lexbuf.lex_eof_reached);
+
+    if List.memq lexbuf.lex_buffer.[lexbuf.lex_curr_pos] chrs then (
+      (* found a word *)
+      Printf.printf "\027[1;33mLexeme:\027[0m \"%s\"\n"
+        (Lexing.lexeme lexbuf |> String.escaped);
+      lexbuf.lex_curr_pos <- lexbuf.lex_curr_pos + 1;
+    ) else (
+      lexbuf.lex_curr_pos <- lexbuf.lex_curr_pos + 1;
+      split_rec true
+    )
   in
-  close_in ic;
-  result
+
+  let continue = ref true in
+  while !continue do
+    try
+      split_rec false
+    with End_of_file ->
+      continue := false
+  done
+;;
+
+let test_lexbuf () =
+  let fh = open_in "test.txt" in
+  let lexbuf = Lexing.from_channel fh in
+  split [' '; '\n'] lexbuf;
+  close_in fh
 
 
 let () =
@@ -38,13 +87,16 @@ let () =
 
       (*print_endline @@ Show.show<string Types.pattern> pat;*)
 
-      let (nfa, start) = NfaConstruct.build varmap npat in
+      let (nfa, start) = NfaConstruct.build Util.identity varmap npat in
       Printf.printf "%d states\n" (Hashtbl.length nfa);
 
       let nfa = NfaConstruct.optimised (nfa, start) in
 
-      let input = slurp input in
-      NfaSimulate.run_loop_opt 0 nfa varmap input
+      let fh = open_in input in
+      let lexbuf = Lexing.from_channel fh in
+      NfaSimulate.run_loop_opt Util.identity nfa varmap lexbuf;
+      (*NfaSimulate.run_loop_opt nfa varmap (slurp fh);*)
+      close_in fh
 
   | _ ->
       failwith "Usage: drelex <lexer.mll> <input>"

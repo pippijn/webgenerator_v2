@@ -34,7 +34,7 @@ rule token = parse
 
 | '\n'					{ NEWLINE }
 | space+				{ SPACE }
-| (word as word) format			{ WORD word }
+| (word as word) format			{ List [WORD word; FORMAT (kind, text)] }
 | word as word				{ WORD word }
 
 | eof					{ EOF }

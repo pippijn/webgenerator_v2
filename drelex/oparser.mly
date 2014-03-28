@@ -1,7 +1,5 @@
 %{
   open Ast
-
-  let identity a = a
 %}
 
 %token EOF
@@ -96,7 +94,7 @@ regexp
 
 
 quantifier
-	: /* empty */					{ identity }
+	: /* empty */					{ Util.identity }
 	| TOK_QUESTION					{ fun r -> Question r }
 	| TOK_STAR					{ fun r -> Star r }
 	| TOK_PLUS					{ fun r -> Plus r }
@@ -108,7 +106,7 @@ int
 
 
 binding
-	: /* empty */					{ identity }
+	: /* empty */					{ Util.identity }
 	| TOK_AS TOK_LNAME				{ fun r -> Binding (r, $2) }
 
 
