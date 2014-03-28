@@ -1,6 +1,17 @@
 open Types
 
 
+let precedence = function
+  | LetterSet _ | Letter _ | Phi | Epsilon -> 140
+  | VarGroup    _ -> 100
+  | Intersect   _ -> 100
+  | Choice      _ -> 100
+  | Concat      _ -> 100
+  | Star        _ -> 90
+  | Repeat      _ -> 100
+  | Not         _ -> 120
+
+
 let rec vars_of_pattern vars = function
   | VarGroup (_, x, p) ->
       x :: vars_of_pattern vars p

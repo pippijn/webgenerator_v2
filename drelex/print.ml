@@ -77,32 +77,45 @@ let rec string_of_range = function
   | _ -> assert false
 
 
-let string_of_pattern string_of_label =
-  let rec string_of_pattern indent = function
-    | VarGroup (_, f, p) ->
-        "(" ^ string_of_label f ^ ":" ^ string_of_pattern false p ^ ")"
-    | Intersect (_, p1, p2) ->
-        string_of_pattern indent p1 ^ "∩" ^ string_of_pattern indent p2
-    | Concat (_, p1, p2) ->
-        string_of_pattern indent p1 ^ string_of_pattern indent p2
-    | Choice (_, p1, p2) ->
-        if indent then
-          string_of_pattern indent p1 ^ "\n  + " ^ string_of_pattern indent p2
-        else
-          string_of_pattern indent p1 ^ "+" ^ string_of_pattern indent p2
-    | Star (p) ->
-        if indent then
-          "(\n    " ^ string_of_pattern indent p ^ "\n)*"
-        else
-          "(" ^ string_of_pattern indent p ^ ")*"
-    | Repeat (_, p, n) ->
-        string_of_pattern indent p ^ superscript_int n
-    | Not (_, p) ->
-        "(¬" ^ string_of_pattern indent p ^ ")"
-    | Epsilon -> "ε"
-    | Phi -> "Ø"
-    | Letter l -> Char.escaped l
-    | LetterSet set ->
-        CharSet.to_string set
+let string_of_pattern string_of_label p =
+  let rec string_of_pattern indent inprec p =
+    let prec = Pattern.precedence p in
+
+    let result =
+      match p with
+      | VarGroup (_, f, p) ->
+          string_of_label f ^ ":" ^ string_of_pattern false prec p
+      | Intersect (_, p1, p2) ->
+          string_of_pattern indent prec p1 ^ "∩" ^ string_of_pattern indent prec p2
+      | Concat (_, p1, p2) ->
+          string_of_pattern indent prec p1 ^ string_of_pattern indent prec p2
+      | Choice (_, p1, p2) ->
+          if indent then
+            string_of_pattern indent prec p1 ^ "\n  + " ^ string_of_pattern indent prec p2
+          else
+            string_of_pattern indent prec p1 ^ "+" ^ string_of_pattern indent prec p2
+      | Star (p) ->
+          if indent then
+            "(\n    " ^ string_of_pattern indent prec p ^ "\n)*"
+          else
+            string_of_pattern indent prec p ^ "*"
+      | Repeat (_, p, n) ->
+          string_of_pattern indent prec p ^ superscript_int n
+      (*| Not (_, Phi) -> ".*"*)
+      | Not (_, p) ->
+          "¬" ^ string_of_pattern indent prec p
+      | Epsilon -> "ε"
+      | Phi -> "Ø"
+      | Letter l -> Char.escaped l
+      | LetterSet set ->
+          CharSet.to_string set
+    in
+
+    if inprec >= prec then
+      "(" ^ result ^ ")"
+    else
+      result
   in
-  string_of_pattern true
+
+  string_of_pattern true 100 p
+  (*Show.show<int pattern> p*)

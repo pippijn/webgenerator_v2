@@ -1,7 +1,7 @@
 open BatPervasives
 open Nfa
 
-let _trace_run = false
+let _trace_run = true
 let _trace_lex = true
 
 type state = int * Types.env

@@ -47,6 +47,9 @@ type 'label pattern =
   deriving (Show)
 
 
+let wildcard = Not (Yes, Phi)
+
+
 type env = (int * position) list deriving (Show)
 let empty_env : env = []
 
