@@ -1,3 +1,5 @@
+let _check_labels	= false
+
 let _trace_con		= false
 
 let _trace_run		= false

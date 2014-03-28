@@ -73,7 +73,7 @@ let number_pattern p =
   let map = Array.make (List.length vars) "" in
 
   BatList.iteri (fun i var ->
-    Hashtbl.add names var (i + 1);
+    Hashtbl.add names var (Label.make i);
     map.(i) <- var;
   ) vars;
 

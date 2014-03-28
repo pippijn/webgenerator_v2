@@ -31,9 +31,10 @@ let update x : t = fun pos l ->
 let rec rename0 vars = function
   | [] -> []
   | Pos (x, s, e) as var :: l ->
+      let x' = Label.rename x in
       if List.memq x vars then
-        Pos (-x, s, e) :: rename0 vars l
-      else if List.memq (-x) vars then
+        Pos (x', s, e) :: rename0 vars l
+      else if List.memq x' vars then
         (* Throw away all previous versions of this var. *)
         rename0 vars l
       else

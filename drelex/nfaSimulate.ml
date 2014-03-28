@@ -26,6 +26,8 @@ let update_envs seen pos env states next =
 
 let rec goto_next_states0 nfa lexbuf pos c next_states = function
   | (state, env) :: tl ->
+      let state = Types.Label.value state in
+
       (* find all transitions on 'c' for 'state' *)
       let next =
         Array.unsafe_get nfa.tables
@@ -35,7 +37,7 @@ let rec goto_next_states0 nfa lexbuf pos c next_states = function
       if Options._trace_run then (
         Printf.printf "state %d -> [%s]\n"
           state (next
-                 |> Array.map (string_of_int % fst)
+                 |> Array.map (Types.Label.to_string % fst)
                  |> Array.to_list
                  |> String.concat ";")
       );
@@ -77,7 +79,7 @@ let rec update_final nfa lexbuf pos = function
   | (p, env) :: states ->
       if Bitset.mem nfa.final p then (
         nfa.last_env           <- env;
-        lexbuf.lex_last_action <- p;
+        lexbuf.lex_last_action <- Types.Label.value p;
         lexbuf.lex_last_pos    <- pos;
       ) else (
         update_final nfa lexbuf pos states

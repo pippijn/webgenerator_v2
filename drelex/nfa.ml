@@ -1,12 +1,12 @@
-type 'tag optimised_nfa = {
-  o_tables    : (int * Tag.t) array array;
-  o_start     : int;
-  o_inversion : 'tag Types.pattern array;
+type 'label optimised_nfa = {
+  o_tables    : (Types.Label.t * Tag.t) array array;
+  o_start     : Types.Label.t;
+  o_inversion : 'label Types.pattern array;
   o_final     : Bitset.t;
 } deriving (Show)
 
 
-type state = int * Types.env
+type 'label state = 'label * Types.env
 
 type lexbuf = Lexing.lexbuf = {
   refill_buff : lexbuf -> unit;
@@ -23,13 +23,13 @@ type lexbuf = Lexing.lexbuf = {
   mutable lex_curr_p : Lexing.position;
 }
 
-type 'tag nfa = {
+type 'label nfa = {
   seen             : Bitset.t;
   final            : Bitset.t;
-  tables           : (int * Tag.t) array array;
-  varmap           : 'tag array;
-  inversion        : int Types.pattern array;
-  start            : state list;
-  string_of_label  : 'tag -> string;
+  tables           : (Types.Label.t * Tag.t) array array;
+  varmap           : 'label array;
+  inversion        : Types.Label.t Types.pattern array;
+  start            : Types.Label.t state list;
+  string_of_label  : 'label -> string;
   mutable last_env : Types.env;
 }

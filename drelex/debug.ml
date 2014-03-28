@@ -14,19 +14,10 @@ let time label f x =
     f x
 
 
-let string_of_int_label string_of_label varmap label =
-  string_of_label (Array.get varmap (label - 1))
-
-
 let string_of_pattern string_of_label varmap =
-  Print.string_of_pattern (string_of_int_label string_of_label varmap)
-
-
-let string_of_int_label string_of_label varmap x =
-  if x < 0 then
-    string_of_label varmap.(-x - 1) ^ "'"
-  else
-    string_of_label varmap.( x - 1)
+  Print.string_of_pattern @@
+    fun label ->
+      string_of_label (Array.get varmap (Label.value label))
 
 
 let show ?(pre="") nfa lexbuf p env =
@@ -47,7 +38,7 @@ let show ?(pre="") nfa lexbuf p env =
     String.concat ", " (
       List.rev_map (fun (Pos (x, start_p, end_p)) ->
         Printf.sprintf "(%s: \"%s\")"
-          (string_of_int_label nfa.string_of_label nfa.varmap x)
+          (Label.name nfa.string_of_label nfa.varmap x)
           (String.escaped (String.sub lexbuf.lex_buffer
                              (lexbuf.lex_start_pos + start_p)
                              (end_p - start_p + 1)))
@@ -65,8 +56,8 @@ let show_list ?(pre="") nfa lexbuf states =
 
 let show_internal nfa lexbuf states =
   List.iter (fun (p, env) ->
-    let p' = nfa.inversion.(p) in
-    show_list ~pre:(string_of_int p ^ ": ")
+    let p' = nfa.inversion.(Label.value p) in
+    show_list ~pre:(Label.to_string p ^ ": ")
       nfa lexbuf [p', env]
   ) states
 

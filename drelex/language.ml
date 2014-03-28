@@ -3,12 +3,12 @@ open Tribool
 
 
 let nullable = function
-  | VarGroup ((Yes | No as null), _, _)
-  | Not ((Yes | No as null), _)
-  | Choice ((Yes | No as null), _, _)
+  | VarGroup  ((Yes | No as null), _, _)
+  | Not       ((Yes | No as null), _   )
+  | Choice    ((Yes | No as null), _, _)
   | Intersect ((Yes | No as null), _, _)
-  | Concat ((Yes | No as null), _, _)
-  | Repeat ((Yes | No as null), _, _) ->
+  | Concat    ((Yes | No as null), _, _)
+  | Repeat    ((Yes | No as null), _, _) ->
       null
 
   | Epsilon
@@ -18,12 +18,12 @@ let nullable = function
   | LetterSet _
   | Letter _ -> No
 
-  | VarGroup (Maybe, _, _)
-  | Not (Maybe, _)
-  | Choice (Maybe, _, _)
+  | VarGroup  (Maybe, _, _)
+  | Not       (Maybe, _   )
+  | Choice    (Maybe, _, _)
   | Intersect (Maybe, _, _)
-  | Concat (Maybe, _, _)
-  | Repeat (Maybe, _, _) ->
+  | Concat    (Maybe, _, _)
+  | Repeat    (Maybe, _, _) ->
       failwith "nullable not computed"
 
 
@@ -71,12 +71,12 @@ let rec compute_nullable = function
       assert (null != Maybe);
       Repeat (null, r, n), null
 
-  | VarGroup ((Yes | No as null), _, _)
-  | Not ((Yes | No as null), _)
-  | Choice ((Yes | No as null), _, _)
+  | VarGroup  ((Yes | No as null), _, _)
+  | Not       ((Yes | No as null), _   )
+  | Choice    ((Yes | No as null), _, _)
   | Intersect ((Yes | No as null), _, _)
-  | Concat ((Yes | No as null), _, _)
-  | Repeat ((Yes | No as null), _, _) as p ->
+  | Concat    ((Yes | No as null), _, _)
+  | Repeat    ((Yes | No as null), _, _) as p ->
       p, null
 
 

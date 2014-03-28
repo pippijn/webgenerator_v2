@@ -16,7 +16,59 @@ type 'label pattern =
   deriving (Show)
 
 
-type position = Pos of int * int * int
+module Label : sig
+
+  type t = private int
+
+  module Show_t : Deriving_Show.Show
+    with type a = t
+
+  val make : int -> t
+  val rename : t -> t
+  val value : t -> int
+  val to_string : t -> string
+
+  val name : ('a -> string) -> 'a array -> t -> string
+
+end = struct
+
+  type t = int
+    deriving (Show)
+
+  let make x =
+    if Options._check_labels then assert (x >= 0);
+    x + 1
+
+  let rename x =
+    if Options._check_labels then assert (x > 0);
+    -x
+
+  let value x =
+    if Options._check_labels then assert (x > 0);
+    x - 1
+
+  let to_string = string_of_int
+
+  let is_renamed x = x < 0
+
+  let name string_of_label varmap x =
+    let varidx =
+      if is_renamed x then
+        value (-x)
+      else
+        value x
+    in
+
+    let name = string_of_label varmap.(varidx) in
+    if is_renamed x then
+      name ^ "'"
+    else
+      name
+
+end
+
+
+type position = Pos of Label.t * int * int
   deriving (Show)
 
 type env = position list
@@ -24,13 +76,10 @@ type env = position list
 
 let empty_env : env = []
 
-type exprset = int pattern list
-type exprsets = (exprset * (int -> env -> env)) list
-
 type instruction =
   | Identity
-  | Update  of int
-  | Iterate of int list
+  | Update  of Label.t
+  | Iterate of Label.t list
   | Compose of instruction * instruction
   deriving (Show)
 
@@ -39,14 +88,14 @@ module type TagType = sig
   type t
     deriving (Show)
 
-  val compose : t -> t -> t
-  val identity : t
-  val update : int -> t
-  val iterate : int pattern -> t
-  val to_string : (int -> string) -> t -> string
-  val execute : t -> int -> env -> env
+  val compose   : t -> t -> t
+  val identity  : t
+  val update    : Label.t -> t
+  val iterate   : Label.t pattern -> t
+  val to_string : (Label.t -> string) -> t -> string
+  val execute   : t -> int -> env -> env
     (* Execute transition actions. *)
-  val compile : t -> int -> env -> env
+  val compile   : t -> int -> env -> env
     (* Compile tag to function for executing transition actions.
        Can be assumed to be called only once for each action,
        before execution, so it may perform more expensive
@@ -55,7 +104,10 @@ end
 
 module ExprsetTbl(T : TagType) = Hashtbl.Make(struct
 
-  type t = (exprset * T.t)
+  type exprset = Label.t pattern list
+    deriving (Show)
+  type t = exprset * T.t
+    deriving (Show)
 
   let equal (a, _) (b, _) =
     a = b
