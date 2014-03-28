@@ -45,8 +45,7 @@ let show ?(pre="") nfa lexbuf p env =
   print_endline (
     "  env:   [" ^
     String.concat ", " (
-      List.rev_map (fun (x, pos) ->
-        let Pos (start_p, end_p) = decode_pos pos in
+      List.rev_map (fun (Pos (x, start_p, end_p)) ->
         Printf.sprintf "(%s: \"%s\")"
           (string_of_int_label nfa.string_of_label nfa.varmap x)
           (String.escaped (String.sub lexbuf.lex_buffer
