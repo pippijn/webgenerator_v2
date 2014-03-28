@@ -1,8 +1,5 @@
 open Ast
 
-let set_begin = 0
-let set_end   = 256
-
 let of_array =
   Array.fold_left (fun l -> function
     | None -> l
@@ -11,7 +8,7 @@ let of_array =
 
 
 let compress list =
-  let chars = Array.make set_end None in
+  let chars = Array.make CharSet.size None in
   List.iter (fun c ->
     chars.(Char.code (Sloc.value c)) <- Some c
   ) list;
@@ -43,8 +40,8 @@ let chrs_of_ranges list =
 
 
 let full_chr_list = chrs_of_range (Range (
-  Sloc.generated (Char.chr (set_begin  )),
-  Sloc.generated (Char.chr (set_end - 1))))
+  Sloc.generated (Char.chr 0),
+  Sloc.generated (Char.chr (CharSet.size - 1))))
 let empty_chr_list = []
 
 
@@ -53,7 +50,7 @@ let of_list chars =
 
 
 let difference (a : char Sloc.t list) (b : char Sloc.t list) =
-  let chars = Array.make set_end None in
+  let chars = Array.make CharSet.size None in
   List.iter (fun c ->
     chars.(Char.code (Sloc.value c)) <- Some c
   ) a;

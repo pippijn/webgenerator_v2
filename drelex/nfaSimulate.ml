@@ -30,7 +30,7 @@ let rec goto_next_states0 nfa pos c next_states = function
       (* find all transitions on 'c' for 'state' *)
       let next =
         Array.unsafe_get nfa.tables
-          (state * CharClass.set_end + Char.code c)
+          (state * CharSet.size + Char.code c)
       in
 
       if _trace_run then (
@@ -141,7 +141,7 @@ let run string_of_tag nfa varmap lexbuf =
   lexbuf.lex_curr_pos <- 0;
   lexbuf.lex_last_pos <- 0;
 
-  let seen = Bitset.create (Array.length nfa.o_nfa / CharClass.set_end) in
+  let seen = Bitset.create (Array.length nfa.o_nfa / CharSet.size) in
 
   let nfa = {
     tables     = nfa.o_nfa;

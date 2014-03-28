@@ -1,7 +1,9 @@
 type t = bool array
 
+let size = 256
+
 let create () =
-  Array.make CharClass.set_end false
+  Array.make size false
 
 let add set chr =
   set.(Char.code chr) <- true
@@ -33,7 +35,7 @@ let to_string set =
   if is_wildcard set then
     "."
   else
-    let buf = Buffer.create CharClass.set_end in
+    let buf = Buffer.create size in
 
     Buffer.add_char buf '[';
 
