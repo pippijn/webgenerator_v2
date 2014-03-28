@@ -7,14 +7,17 @@ type position = Pos of int * int
 
 type compressed_position = int
 
-let start_p (pos : compressed_position) = pos lsr 16
-let end_p   (pos : compressed_position) = pos land 0xffff
+let start_p (pos : compressed_position) = (pos lsr 16) land 0xffff
+let end_p   (pos : compressed_position) = (pos       ) land 0xffff
 
 let decode_pos (pos : compressed_position) =
   Pos (start_p pos, end_p pos)
 
 let encode_pos start_p end_p =
-  (start_p lsl 16) lor (end_p land 0xffff)
+  (*assert (start_p < 0xffff);*)
+  (*assert (end_p   < 0xffff);*)
+  ((start_p land 0xffff) lsl 16) lor
+  ((end_p   land 0xffff)       )
 
 
 module Show_compressed_position = Deriving_Show.Defaults(struct
