@@ -84,7 +84,7 @@ let rec update_final nfa pos = function
       ()
 
 
-let rec main_loop nfa states =
+let rec byte_loop nfa states =
   if _trace_run then
     print_newline ();
 
@@ -111,15 +111,14 @@ let rec main_loop nfa states =
     update_final nfa pos states;
 
     nfa.lexbuf.lex_curr_pos <- pos + 1;
-    main_loop nfa states
+    byte_loop nfa states
 
 
 let rec backtrack_loop nfa =
   nfa.lexbuf.lex_last_action <- -1;
+  nfa.lexbuf.lex_start_pos <- nfa.lexbuf.lex_curr_pos;
 
-  nfa.lexbuf.lex_start_pos   <- nfa.lexbuf.lex_curr_pos;
-
-  main_loop nfa nfa.start;
+  byte_loop nfa nfa.start;
 
   if nfa.lexbuf.lex_last_action <> -1 then (
       if _trace_lex then (

@@ -51,8 +51,6 @@ let test_lexbuf () =
 
 
 let () =
-  Printexc.record_backtrace true;
-
   match Sys.argv with
   | [|_; mll; input|] ->
       let ast =
