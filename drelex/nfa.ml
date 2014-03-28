@@ -30,7 +30,7 @@ type 'tag nfa = {
   varmap             : 'tag array;
   inversion          : int Types.pattern array;
   start              : state list;
-  string_of_tag      : 'tag -> string;
+  string_of_label      : 'tag -> string;
   lexbuf             : lexbuf;
   mutable last_env   : Types.env;
 }

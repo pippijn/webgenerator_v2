@@ -137,7 +137,7 @@ let rec backtrack_loop nfa =
   )
 
 
-let run string_of_tag nfa varmap lexbuf =
+let run string_of_label nfa varmap lexbuf =
   lexbuf.lex_curr_pos <- 0;
   lexbuf.lex_last_pos <- 0;
 
@@ -150,7 +150,7 @@ let run string_of_tag nfa varmap lexbuf =
 
     seen;
     varmap;
-    string_of_tag;
+    string_of_label;
     lexbuf;
 
     start      = [(nfa.o_start, Types.empty_env)];

@@ -17,19 +17,19 @@ let time label f =
     f ()
 
 
-let string_of_label string_of_tag varmap label =
-  string_of_tag (Array.get varmap (label - 1))
+let string_of_int_label string_of_label varmap label =
+  string_of_label (Array.get varmap (label - 1))
 
 
-let string_of_pattern string_of_tag varmap =
-  Print.string_of_pattern (string_of_label string_of_tag varmap)
+let string_of_pattern string_of_label varmap =
+  Print.string_of_pattern (string_of_int_label string_of_label varmap)
 
 
-let string_of_label string_of_tag varmap x =
+let string_of_int_label string_of_label varmap x =
   if x < 0 then
-    string_of_tag varmap.(-x - 1) ^ "'"
+    string_of_label varmap.(-x - 1) ^ "'"
   else
-    string_of_tag varmap.( x - 1)
+    string_of_label varmap.( x - 1)
 
 
 let show ?(pre="") nfa p env =
@@ -42,7 +42,7 @@ let show ?(pre="") nfa p env =
   print_endline (
     "  state: " ^
     pre ^
-    string_of_pattern nfa.string_of_tag nfa.varmap p ^
+    string_of_pattern nfa.string_of_label nfa.varmap p ^
     is_final
   );
   print_endline (
@@ -51,7 +51,7 @@ let show ?(pre="") nfa p env =
       List.rev_map (fun (x, pos) ->
         let Pos (start_p, end_p) = decode_pos pos in
         Printf.sprintf "(%s: \"%s\")"
-          (string_of_label nfa.string_of_tag nfa.varmap x)
+          (string_of_int_label nfa.string_of_label nfa.varmap x)
           (String.escaped (String.sub nfa.lexbuf.lex_buffer
                              (nfa.lexbuf.lex_start_pos + start_p)
                              (end_p - start_p + 1)))
