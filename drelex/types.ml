@@ -7,17 +7,41 @@ type position = Pos of int * int
 
 type compressed_position = int
 
-let decode_start_p (pos : compressed_position) = (pos lsr 16) land 0xffff
+let check_pos_limits = false
+
+let decode_start_p (pos : compressed_position) = (pos lsr 16) land 0x3fff
 let decode_end_p   (pos : compressed_position) = (pos       ) land 0xffff
 
 let decode_pos (pos : compressed_position) =
   Pos (decode_start_p pos, decode_end_p pos)
 
 let encode_pos start_p end_p =
-  (*assert (start_p < 0xffff);*)
-  (*assert (end_p   < 0xffff);*)
-  ((start_p land 0xffff) lsl 16) lor
+  if check_pos_limits then (
+    assert (start_p <= 0x3fff);
+    assert (end_p   <= 0xffff);
+  );
+  ((start_p land 0x3fff) lsl 16) lor
   ((end_p   land 0xffff)       )
+
+
+(* Unit test *)
+let () =
+  let check_encode start_p end_p =
+    let Pos (start_p', end_p') =
+      decode_pos (encode_pos start_p end_p)
+    in
+    if start_p' <> start_p then
+      Printf.printf "start_p expected %d, but is %d\n"
+        start_p start_p';
+    if end_p' <> end_p then
+      Printf.printf "end_p expected %d, but is %d\n"
+        end_p end_p';
+    start_p = start_p' && end_p = end_p'
+  in
+
+  assert (check_encode 0 0);
+  assert (check_encode 16383 10000);
+;;
 
 
 module Show_compressed_position = Deriving_Show.Defaults(struct
