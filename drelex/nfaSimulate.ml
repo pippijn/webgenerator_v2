@@ -126,7 +126,6 @@ let rec backtrack_loop nfa =
         Printf.printf "\027[1;33mLexeme:\027[0m (at pos = %d/%d)\n"
           nfa.lexbuf.lex_last_pos
           nfa.lexbuf.lex_buffer_len;
-        print_endline @@ Show.show<Types.env> nfa.last_env;
         Debug.show nfa
           nfa.inversion.(nfa.lexbuf.lex_last_action)
           nfa.last_env;

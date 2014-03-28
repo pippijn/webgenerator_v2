@@ -5,8 +5,8 @@ let rec update x pos = function
   | [] -> raise Not_found
   | (y, position) :: env ->
       if y = x then
-        let (Pos (lo, hi)) = position in
-        (y, Pos (lo, pos)) :: env
+        let lo = start_p position in
+        (y, encode_pos lo pos) :: env
       else
         (y, position) :: update x pos env
 
@@ -15,7 +15,7 @@ let update x pos l =
   try
     update x pos l
   with Not_found ->
-    (x, Pos (pos, pos)) :: l
+    (x, encode_pos pos pos) :: l
 
 
 let rename vars pos =
