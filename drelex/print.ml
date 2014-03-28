@@ -76,6 +76,11 @@ let rec string_of_range = function
   | Letter l -> Char.escaped l
   | _ -> assert false
 
+(*let and_op = "∩"*)
+(*let or_op  = "+"*)
+
+let and_op = "&"
+let or_op  = "|"
 
 let string_of_pattern string_of_label p =
   let rec string_of_pattern indent inprec p =
@@ -86,14 +91,14 @@ let string_of_pattern string_of_label p =
       | VarGroup (_, f, p) ->
           string_of_label f ^ ":" ^ string_of_pattern false prec p
       | Intersect (_, p1, p2) ->
-          string_of_pattern indent prec p1 ^ "∩" ^ string_of_pattern indent prec p2
+          string_of_pattern indent prec p1 ^ and_op ^ string_of_pattern indent prec p2
       | Concat (_, p1, p2) ->
           string_of_pattern indent prec p1 ^ string_of_pattern indent prec p2
       | Choice (_, p1, p2) ->
           if indent then
-            string_of_pattern indent prec p1 ^ "\n  + " ^ string_of_pattern indent prec p2
+            string_of_pattern indent prec p1 ^ "\n  " ^ or_op ^ " " ^ string_of_pattern indent prec p2
           else
-            string_of_pattern indent prec p1 ^ "+" ^ string_of_pattern indent prec p2
+            string_of_pattern indent prec p1 ^ or_op ^ string_of_pattern indent prec p2
       | Star (p) ->
           if indent then
             "(\n    " ^ string_of_pattern indent prec p ^ "\n)*"
@@ -111,11 +116,11 @@ let string_of_pattern string_of_label p =
           CharSet.to_string set
     in
 
-    if inprec >= prec then
+    if inprec > prec then
       "(" ^ result ^ ")"
     else
       result
   in
 
-  string_of_pattern true 100 p
+  string_of_pattern true 1000 p
   (*Show.show<int pattern> p*)

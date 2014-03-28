@@ -47,9 +47,11 @@ let rec resolve_regexp map = function
   sub-expressions are recursively resolved.
 *)
   (* a b *)
-  | Sequence    list -> Sequence    (List.map (resolve_regexp map) list)
+  | Sequence     list -> Sequence     (List.map (resolve_regexp map) list)
   (* a | b *)
-  | Alternation list -> Alternation (List.map (resolve_regexp map) list)
+  | Alternation  list -> Alternation  (List.map (resolve_regexp map) list)
+  (* a & b *)
+  | Intersection list -> Intersection (List.map (resolve_regexp map) list)
   (* a? *)
   | Question re -> Question (resolve_regexp map re)
   (* a{n,m} *)

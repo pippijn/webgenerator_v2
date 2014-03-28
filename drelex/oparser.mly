@@ -27,6 +27,7 @@
 %token TOK_STAR			/* "*"	*/
 %token TOK_PLUS			/* "+"	*/
 %token TOK_PIPE			/* "|"	*/
+%token TOK_AMPERSAND		/* "&"	*/
 %token TOK_MINUS		/* "-"	*/
 %token TOK_EQUALS		/* "="	*/
 %token TOK_COMMA		/* ","	*/
@@ -64,7 +65,7 @@ parse
 
 
 parse_regexp
-	: sequence EOF					{ $1 }
+	: intersection EOF				{ $1 }
 
 
 code
@@ -72,16 +73,25 @@ code
 
 
 lexeme
-	: TOK_LET TOK_LNAME TOK_EQUALS sequence		{ Alias ($2, $4) }
+	: TOK_LET TOK_LNAME TOK_EQUALS intersection	{ Alias ($2, $4) }
 
 
-regexps
+alternation
 	: or_regexps binding				{ $2 (match $1 with [a] -> a | l -> Alternation (List.rev l)) }
 
 
 or_regexps
-	: TOK_PIPE? sequence				{ [$2] }
-	| or_regexps TOK_PIPE sequence			{ $3 :: $1 }
+	: TOK_PIPE? intersection			{ [$2] }
+	| or_regexps TOK_PIPE intersection		{ $3 :: $1 }
+
+
+intersection
+	: and_regexps					{ match $1 with [a] -> a | l -> Intersection (List.rev l) }
+
+
+and_regexps
+	: sequence					{ [$1] }
+	| and_regexps TOK_AMPERSAND sequence		{ $3 :: $1 }
 
 
 sequence
@@ -118,7 +128,7 @@ atom
 	| TOK_EOF					{ Eof }
 	| TOK_UNDERLINE					{ AnyChar }
 	| TOK_LBRACK inverted char_class+ TOK_RBRACK	{ CharClass ($2 $3) }
-	| TOK_LPAREN regexps TOK_RPAREN			{ $2 }
+	| TOK_LPAREN alternation TOK_RPAREN		{ $2 }
 	| TOK_PROPERTY property TOK_RBRACE		{ CharProperty $2 }
 
 
@@ -159,4 +169,4 @@ lexer_head
 
 
 rule
-	: regexps code					{ Rule ($1, $2) }
+	: alternation code				{ Rule ($1, $2) }

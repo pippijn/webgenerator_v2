@@ -2,14 +2,14 @@ open Types
 
 
 let precedence = function
-  | LetterSet _ | Letter _ | Phi | Epsilon -> 140
-  | VarGroup    _ -> 100
-  | Intersect   _ -> 100
-  | Choice      _ -> 100
-  | Concat      _ -> 100
-  | Star        _ -> 90
-  | Repeat      _ -> 100
-  | Not         _ -> 120
+  | LetterSet _ | Letter _ | Phi | Epsilon -> 200
+  | VarGroup    _ ->  80
+  | Choice      _ -> 110
+  | Intersect   _ -> 120
+  | Concat      _ -> 130
+  | Star        _
+  | Repeat      _ -> 140
+  | Not         _ -> 150
 
 
 let rec vars_of_pattern vars = function

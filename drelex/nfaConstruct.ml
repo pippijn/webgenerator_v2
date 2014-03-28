@@ -68,8 +68,15 @@ let build string_of_tag varmap start =
 
 
 
-let cardinal (nfa, start) =
+let state_count (nfa, start) =
   Hashtbl.length nfa
+
+let transition_count (nfa, start) =
+  Hashtbl.fold (fun p xs count ->
+    Array.fold_left (fun count xs ->
+      count + List.length xs
+    ) count xs
+  ) nfa 0
 
 
 let optimised (nfa, start) =

@@ -87,10 +87,12 @@ let () =
 
       (*print_endline @@ Show.show<string Types.pattern> pat;*)
 
-      let (nfa, start) = NfaConstruct.build Util.identity varmap npat in
-      Printf.printf "%d states\n" (Hashtbl.length nfa);
+      let nfa = NfaConstruct.build Util.identity varmap npat in
+      Printf.printf "%d states, %d transitions\n"
+        (NfaConstruct.state_count nfa)
+        (NfaConstruct.transition_count nfa);
 
-      let nfa = NfaConstruct.optimised (nfa, start) in
+      let nfa = NfaConstruct.optimised nfa in
 
       let fh = open_in input in
       let lexbuf = Lexing.from_channel fh in
