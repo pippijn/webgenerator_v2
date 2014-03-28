@@ -5,16 +5,16 @@ open Nfa
 let _timing = true
 
 
-let time label f =
+let time label f x =
   if _timing then
     let s = Unix.gettimeofday () in
-    let r = f () in
+    let r = f x in
     let e = Unix.gettimeofday () in
     Printf.printf "%s: %.06f sec\n" label (e -. s);
     flush stdout;
     r
   else
-    f ()
+    f x
 
 
 let string_of_int_label string_of_label varmap label =
@@ -32,7 +32,7 @@ let string_of_int_label string_of_label varmap x =
     string_of_label varmap.( x - 1)
 
 
-let show ?(pre="") nfa p env =
+let show ?(pre="") nfa lexbuf p env =
   let is_final =
     if Language.nullable p = Tribool.Yes then
       "\t(FINAL)"
@@ -52,8 +52,8 @@ let show ?(pre="") nfa p env =
         let Pos (start_p, end_p) = decode_pos pos in
         Printf.sprintf "(%s: \"%s\")"
           (string_of_int_label nfa.string_of_label nfa.varmap x)
-          (String.escaped (String.sub nfa.lexbuf.lex_buffer
-                             (nfa.lexbuf.lex_start_pos + start_p)
+          (String.escaped (String.sub lexbuf.lex_buffer
+                             (lexbuf.lex_start_pos + start_p)
                              (end_p - start_p + 1)))
       ) env
     ) ^
@@ -61,17 +61,17 @@ let show ?(pre="") nfa p env =
   )
 
 
-let show_list ?(pre="") nfa states =
+let show_list ?(pre="") nfa lexbuf states =
   List.iter
-    (fun (p, env) -> show nfa p env)
+    (fun (p, env) -> show nfa lexbuf p env)
     states
 
 
-let show_internal nfa states =
+let show_internal nfa lexbuf states =
   List.iter (fun (p, env) ->
     let p' = nfa.inversion.(p) in
     show_list ~pre:(string_of_int p ^ ": ")
-      nfa [p', env]
+      nfa lexbuf [p', env]
   ) states
 
 

@@ -24,13 +24,12 @@ type lexbuf = Lexing.lexbuf = {
 }
 
 type 'tag nfa = {
-  seen               : Bitset.t;
-  final              : Bitset.t;
-  tables             : (int * Tag.t) array array;
-  varmap             : 'tag array;
-  inversion          : int Types.pattern array;
-  start              : state list;
-  string_of_label      : 'tag -> string;
-  lexbuf             : lexbuf;
-  mutable last_env   : Types.env;
+  seen             : Bitset.t;
+  final            : Bitset.t;
+  tables           : (int * Tag.t) array array;
+  varmap           : 'tag array;
+  inversion        : int Types.pattern array;
+  start            : state list;
+  string_of_label  : 'tag -> string;
+  mutable last_env : Types.env;
 }

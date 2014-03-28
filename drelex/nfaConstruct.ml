@@ -60,11 +60,9 @@ and build string_of_label varmap nfa p =
 
 
 let build string_of_label varmap start =
-  Debug.time "build" (fun () ->
-    let nfa = Hashtbl.create 10 in
-    build string_of_label varmap nfa start;
-    nfa, start
-  )
+  let nfa = Hashtbl.create 10 in
+  build string_of_label varmap nfa start;
+  nfa, start
 
 
 
@@ -116,3 +114,36 @@ let optimised (nfa, start) =
   let o_start = Hashtbl.find hashcons start in
 
   { o_tables; o_start; o_inversion; o_final; }
+
+
+let construct string_of_label pat =
+  let pat = Language.compute_nullable pat in
+  let pat, varmap = Pattern.number_pattern pat in
+
+  let nfa =
+    Debug.time "build nfa"
+      (build string_of_label varmap) pat
+  in
+  Printf.printf "%d states, %d transitions\n"
+    (state_count nfa)
+    (transition_count nfa);
+
+  let nfa =
+    Debug.time "build table"
+      optimised nfa
+  in
+
+  let seen = Bitset.create (Array.length nfa.o_tables / CharSet.size) in
+
+  {
+    tables     = nfa.o_tables;
+    final      = nfa.o_final;
+    inversion  = nfa.o_inversion;
+
+    seen;
+    varmap;
+    string_of_label;
+
+    start      = [(nfa.o_start, Types.empty_env)];
+    last_env   = [];
+  }
