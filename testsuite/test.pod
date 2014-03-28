@@ -4,3 +4,6 @@ L<hi>
 L<hi|ho>
 L<< hi >>
 L<< hi|ho >>
+C<hehe>
+C<< hehe >>
+C<< hehe>>

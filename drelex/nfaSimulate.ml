@@ -6,8 +6,20 @@ let _trace_lex = true
 
 type state = int * Types.env
 
-let invalid_state = (-1, [])
-let invalid_pos   = -1
+type lexbuf = Lexing.lexbuf = {
+  refill_buff : lexbuf -> unit;
+  mutable lex_buffer : string;
+  mutable lex_buffer_len : int;
+  mutable lex_abs_pos : int;
+  mutable lex_start_pos : int;
+  mutable lex_curr_pos : int;
+  mutable lex_last_pos : int;
+  mutable lex_last_action : int;
+  mutable lex_eof_reached : bool;
+  mutable lex_mem : int array;
+  mutable lex_start_p : Lexing.position;
+  mutable lex_curr_p : Lexing.position;
+}
 
 type 'tag nfa = {
   seen               : Bitset.t;
@@ -19,8 +31,8 @@ type 'tag nfa = {
   inversion          : int Types.pattern array;
   start              : state list;
   string_of_tag      : 'tag -> string;
-  mutable last_final : state;
-  mutable last_pos   : int;
+  lexbuf             : lexbuf;
+  mutable last_env   : Types.env;
 }
 
 
@@ -84,10 +96,11 @@ let iteration nfa pos states c =
 
 
 let rec update_final nfa pos = function
-  | (p, _ as state) :: states ->
+  | (p, env) :: states ->
       if Bitset.mem nfa.final p then (
-        nfa.last_final <- state;
-        nfa.last_pos <- pos;
+        nfa.last_env               <- env;
+        nfa.lexbuf.lex_last_action <- p;
+        nfa.lexbuf.lex_last_pos    <- pos;
       ) else (
         update_final nfa pos states
       )
@@ -95,13 +108,13 @@ let rec update_final nfa pos = function
       ()
 
 
-let rec main_loop nfa pos states =
+let rec main_loop nfa states =
   if _trace_run then
     print_newline ();
 
-  if pos = nfa.len || states = [] then
-    (nfa.last_final, nfa.last_pos)
-  else
+  let pos = nfa.lexbuf.lex_curr_pos in
+
+  if pos <> nfa.len && states <> [] then
     let c = String.unsafe_get nfa.input pos in
     let states = iteration nfa pos states c in
 
@@ -118,29 +131,29 @@ let rec main_loop nfa pos states =
 
     update_final nfa pos states;
 
-    main_loop nfa (pos + 1) states
+    nfa.lexbuf.lex_curr_pos <- pos + 1;
+    main_loop nfa states
 
 
-let rec run_optimised_loop pos nfa input =
-  nfa.last_final <- invalid_state;
-  nfa.last_pos   <- invalid_pos;
+let rec backtrack_loop nfa input =
+  nfa.lexbuf.lex_last_action <- -1;
 
-  let state = main_loop nfa pos nfa.start in
+  main_loop nfa nfa.start;
 
-  match state with
-  | ((-1, []), -1) ->
-      ()
-  | ((state, env), pos) ->
+  if nfa.lexbuf.lex_last_action <> -1 then (
       if _trace_lex then (
         Printf.printf "\027[1;33mLexeme:\027[0m (at pos = %d/%d)\n"
-          pos nfa.len;
+          nfa.lexbuf.lex_last_pos nfa.len;
         Debug.show
           nfa.string_of_tag nfa.varmap
           input
-          nfa.inversion.(state)
-          env;
+          nfa.inversion.(nfa.lexbuf.lex_last_action)
+          nfa.last_env;
       );
-      run_optimised_loop (pos + 1) nfa input
+      nfa.lexbuf.lex_last_pos <- nfa.lexbuf.lex_last_pos + 1;
+      nfa.lexbuf.lex_curr_pos <- nfa.lexbuf.lex_last_pos;
+      backtrack_loop nfa input
+  )
 
 
 let slurp_lexbuf lexbuf =
@@ -156,6 +169,9 @@ let slurp_lexbuf lexbuf =
 let run_loop_opt string_of_tag nfa varmap lexbuf =
   let input = slurp_lexbuf lexbuf in
 
+  lexbuf.lex_curr_pos <- 0;
+  lexbuf.lex_last_pos <- 0;
+
   let seen = Bitset.create (Array.length nfa.o_nfa / CharClass.set_end) in
 
   let nfa = {
@@ -167,13 +183,13 @@ let run_loop_opt string_of_tag nfa varmap lexbuf =
     input;
     varmap;
     string_of_tag;
+    lexbuf;
 
     start      = [(nfa.o_start, Types.empty_env)];
     len        = String.length input;
-    last_final = invalid_state;
-    last_pos   = invalid_pos;
+    last_env   = [];
   } in
 
-  Debug.time "run_optimised_loop" (fun () ->
-    run_optimised_loop 0 nfa input
+  Debug.time "backtrack_loop" (fun () ->
+    backtrack_loop nfa input
   )
