@@ -29,14 +29,20 @@ let update x : t = fun pos l ->
     (x, encode_pos pos pos) :: l
 
 
-let rename vars : t = fun pos l ->
+let rec rename0 vars = function
+  | [] -> []
+  | (x, w as var) :: l ->
+      if List.memq x vars then
+        (-x, w) :: rename0 vars l
+      else if List.memq (-x) vars then
+        (* Throw away all previous versions of this var. *)
+        rename0 vars l
+      else
+        var :: rename0 vars l
+
+let rename vars pos l =
   (* rename the previous match *)
-  List.map (fun (x, w) ->
-    if List.memq x vars then
-      (-x, w)
-    else
-      ( x, w)
-  ) l
+  rename0 vars l
 
 
 let identity pos a = a
