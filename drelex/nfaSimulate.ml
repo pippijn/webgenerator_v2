@@ -10,15 +10,15 @@ let invalid_state = (-1, [])
 let invalid_pos   = -1
 
 type 'tag nfa = {
-  seen      : Bitset.t;
-  final     : Bitset.t;
-  nfa       : (int * int Instruction.t) list array;
-  input     : string;
-  len       : int;
-  varmap    : 'tag array;
-  inversion : int Types.pattern array;
-  start     : state list;
-  string_of_tag : 'tag -> string;
+  seen               : Bitset.t;
+  final              : Bitset.t;
+  tables             : (int * int Instruction.t) list array;
+  input              : string;
+  len                : int;
+  varmap             : 'tag array;
+  inversion          : int Types.pattern array;
+  start              : state list;
+  string_of_tag      : 'tag -> string;
   mutable last_final : state;
   mutable last_pos   : int;
 }
@@ -44,27 +44,29 @@ let update_envs seen pos env states next =
   update_envs0 seen pos env states next
 
 
+let rec goto_next_states0 nfa pos c next_states = function
+  | (state, env) :: tl ->
+      (* find all transitions on 'c' for 'state' *)
+      let next =
+        Array.unsafe_get nfa.tables
+          (state * CharClass.set_end + Char.code c)
+      in
+
+      if _trace_run then (
+        Printf.printf "state %d -> [%s]\n"
+          state (String.concat ";" (List.map (string_of_int % fst) next))
+      );
+
+      (* update envs *)
+      let next_states = update_envs nfa.seen pos env next_states next in
+
+      (* recursive call *)
+      goto_next_states0 nfa pos c next_states tl
+
+  | [] ->
+      next_states
+
 let goto_next_states nfa pos c curr_states =
-  let rec goto_next_states0 nfa pos c next_states curr_states =
-    match curr_states with
-    | (state, env) :: tl ->
-        (* find all transitions on 'c' for 'state' *)
-        let next = Array.unsafe_get nfa.nfa (state * CharClass.set_end + (Char.code c)) in
-
-        if _trace_run then (
-          Printf.printf "state %d -> [%s]\n"
-            state (String.concat ";" (List.map (string_of_int % fst) next))
-        );
-
-        (* update envs *)
-        let next_states = update_envs nfa.seen pos env next_states next in
-
-        (* recursive call *)
-        goto_next_states0 nfa pos c next_states tl
-
-    | [] ->
-        next_states
-  in
   goto_next_states0 nfa pos c [] curr_states
 
 
@@ -157,7 +159,7 @@ let run_loop_opt string_of_tag nfa varmap lexbuf =
   let seen = Bitset.create (Array.length nfa.o_nfa / CharClass.set_end) in
 
   let nfa = {
-    nfa        = nfa.o_nfa;
+    tables     = nfa.o_nfa;
     final      = nfa.o_final;
     inversion  = nfa.o_inversion;
 

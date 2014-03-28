@@ -5,9 +5,9 @@ open PodParser
 
 let upper = ['A'-'Z']
 let lower = ['a'-'z']
-let alpha = (upper | lower)
+let alpha = upper | lower
 let digit = ['0'-'9']
-let alnum = (alpha | digit)
+let alnum = alpha | digit
 
 let format = (upper as kind) '<' ([^'<''>']+ as text) '>'
 

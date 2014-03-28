@@ -73,7 +73,7 @@ code
 
 
 lexeme
-	: TOK_LET TOK_LNAME TOK_EQUALS intersection	{ Alias ($2, $4) }
+	: TOK_LET TOK_LNAME TOK_EQUALS alternation	{ Alias ($2, $4) }
 
 
 alternation
