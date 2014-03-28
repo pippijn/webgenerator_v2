@@ -12,7 +12,8 @@ let rec update_envs0 seen pos env states = function
           states
         ) else (
           Bitset.set seen pd;
-          (* This is slow if there are many states. *)
+          (* This is slow if there are many states, but there are
+             rarely more than 10, and usually less than 4. *)
           states @ [(pd, Tag.execute f pos env)]
         )
       in
