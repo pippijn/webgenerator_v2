@@ -116,6 +116,7 @@ let string_of_pattern string_of_label p =
           CharSet.to_string set
     in
 
+    (* We don't need >= since all operators are associative. *)
     if inprec > prec then
       "(" ^ result ^ ")"
     else
