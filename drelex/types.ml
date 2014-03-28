@@ -16,9 +16,6 @@ type 'label pattern =
   deriving (Show)
 
 
-let wildcard = Not (Tribool.Yes, Phi)
-
-
 type position = Pos of int * int * int
   deriving (Show)
 

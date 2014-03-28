@@ -65,6 +65,8 @@ let rec need_simplify = function
   | Letter _ -> false
 
 
+let wildcard = Not (Tribool.Yes, Phi)
+
 (* 4.1 Weaker notions of RE equivalence *)
 let rec simplify_step = function
   (* & *)
