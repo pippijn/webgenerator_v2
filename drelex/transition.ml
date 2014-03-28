@@ -16,7 +16,7 @@ let rec update x : t = fun pos -> function
   | [] -> raise Not_found
   | (y, position) :: env ->
       if y = x then
-        let lo = start_p position in
+        let lo = decode_start_p position in
         (y, encode_pos lo pos) :: env
       else
         (y, position) :: update x pos env

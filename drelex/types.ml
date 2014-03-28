@@ -7,11 +7,11 @@ type position = Pos of int * int
 
 type compressed_position = int
 
-let start_p (pos : compressed_position) = (pos lsr 16) land 0xffff
-let end_p   (pos : compressed_position) = (pos       ) land 0xffff
+let decode_start_p (pos : compressed_position) = (pos lsr 16) land 0xffff
+let decode_end_p   (pos : compressed_position) = (pos       ) land 0xffff
 
 let decode_pos (pos : compressed_position) =
-  Pos (start_p pos, end_p pos)
+  Pos (decode_start_p pos, decode_end_p pos)
 
 let encode_pos start_p end_p =
   (*assert (start_p < 0xffff);*)
@@ -51,8 +51,8 @@ let wildcard = Not (Tribool.Yes, Phi)
 type env = (int * compressed_position) list deriving (Show)
 let empty_env : env = []
 
-type 'label exprset = 'label pattern list
-type 'label exprsets = ('label exprset * (int -> env -> env)) list
+type exprset = int pattern list
+type exprsets = (exprset * (int -> env -> env)) list
 
 type instruction =
   | Identity
@@ -82,7 +82,7 @@ end
 
 module ExprsetTbl(T : TagType) = Hashtbl.Make(struct
 
-  type t = (int exprset * T.t)
+  type t = (exprset * T.t)
 
   let equal (a, _) (b, _) =
     a = b
