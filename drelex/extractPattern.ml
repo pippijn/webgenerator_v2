@@ -1,6 +1,8 @@
 open BatPervasives
-open Types
+
 open Ast
+open Tribool
+open Types
 
 
 let rec extract_pattern = function

@@ -1,5 +1,6 @@
 %{
   open Ast
+  open Tribool
 %}
 
 %token EOF

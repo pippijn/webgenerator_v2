@@ -3,7 +3,6 @@
 /setup.log
 /setup.data
 *.omc
-*.bak
-*.ba[0-9]
+*.ba[k0-9]
 *.byte
 *.native

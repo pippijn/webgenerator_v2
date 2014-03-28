@@ -11,6 +11,7 @@
 %token<char * string> FORMAT
 %token<string option * string> LINK
 %token OVER BACK ITEM BEGIN END FOR
+%token<token list> List
 
 %start<unit> document
 

@@ -33,7 +33,7 @@ let string_of_label string_of_tag varmap x =
 
 let show ?(pre="") string_of_tag varmap input p env =
   let is_final =
-    if Language.nullable p = Yes then
+    if Language.nullable p = Tribool.Yes then
       "\t(FINAL)"
     else
       ""

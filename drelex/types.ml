@@ -4,42 +4,14 @@ type letter = char
 type position = Pos of int * int
   deriving (Show)
 
-type tribool =
-  | No
-  | Yes
-  | Maybe
-  deriving (Show)
-
-let not3 = function
-  | No -> Yes
-  | Yes -> No
-  | Maybe -> Maybe
-
-let (|||) a b =
-  match a, b with
-  | No, No -> No
-  | _, Yes
-  | Yes, _ -> Yes
-  | _, Maybe
-  | Maybe, _ -> Maybe
-
-let (&&&) a b =
-  match a, b with
-  | Yes, Yes -> Yes
-  | No, _
-  | _, No -> No
-  | _, Maybe
-  | Maybe, _ -> Maybe
-
-
 type 'label pattern =
-  | VarGroup    of tribool * 'label * 'label pattern
-  | Intersect   of tribool * 'label pattern * 'label pattern
-  | Choice      of tribool * 'label pattern * 'label pattern
-  | Concat      of tribool * 'label pattern * 'label pattern
-  | Star        of           'label pattern
-  | Repeat      of tribool * 'label pattern * int
-  | Not         of tribool * 'label pattern
+  | VarGroup    of Tribool.t * 'label * 'label pattern
+  | Intersect   of Tribool.t * 'label pattern * 'label pattern
+  | Choice      of Tribool.t * 'label pattern * 'label pattern
+  | Concat      of Tribool.t * 'label pattern * 'label pattern
+  | Star        of             'label pattern
+  | Repeat      of Tribool.t * 'label pattern * int
+  | Not         of Tribool.t * 'label pattern
   | LetterSet   of CharSet.t
   | Letter      of letter
   | Epsilon
@@ -47,7 +19,7 @@ type 'label pattern =
   deriving (Show)
 
 
-let wildcard = Not (Yes, Phi)
+let wildcard = Not (Tribool.Yes, Phi)
 
 
 type env = (int * position) list deriving (Show)

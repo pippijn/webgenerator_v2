@@ -1,4 +1,5 @@
 open Types
+open Tribool
 
 
 let nullable = function

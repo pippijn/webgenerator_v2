@@ -1,25 +1,5 @@
 open Types
-
-let not3 = function
-  | No -> Yes
-  | Yes -> No
-  | Maybe -> failwith "Maybe in not3"
-
-let (|||) a b =
-  match a, b with
-  | No, No -> No
-  | _, Yes
-  | Yes, _ -> Yes
-  | _, Maybe
-  | Maybe, _ -> failwith "Maybe in |||"
-
-let (&&&) a b =
-  match a, b with
-  | Yes, Yes -> Yes
-  | No, _
-  | _, No -> No
-  | _, Maybe
-  | Maybe, _ -> failwith "Maybe in &&&"
+open Tribool
 
 
 let rec pattern_of_exprset = function

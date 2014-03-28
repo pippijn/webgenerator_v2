@@ -19,9 +19,10 @@ $(SETUP): setup.ml
   ocamlbuild setup.native
 
 myocamlbuild.ml setup.ml: _oasis
+  rm -f *.ba[k0-9]
   oasis setup
 
 .PHONY: clean
 clean:
   ocamlbuild -clean
-  #rm *.bak
+  rm -f *.ba[k0-9]

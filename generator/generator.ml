@@ -80,6 +80,7 @@ let parse env =
           Sys.exec ["/bin/cp"; file; rebase file]
 
       | ".pod" ->
+          print_endline file;
           Parsers.Pod.process file
 
       | ".md" ->

@@ -9,7 +9,7 @@ let _trace_con = false
 
 let filter_final states =
   List.filter (fun (p, _) ->
-    Language.nullable p = Yes
+    Language.nullable p = Tribool.Yes
   ) states
 
 
@@ -90,7 +90,7 @@ let optimised (nfa, start) =
     assert (not (Hashtbl.mem hashcons p));
     let id = Hashtbl.length hashcons in
     Hashtbl.add hashcons p id;
-    if Language.nullable p = Yes then
+    if Language.nullable p = Tribool.Yes then
       Bitset.set o_final id;
   ) nfa;
 
