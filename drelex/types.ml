@@ -72,7 +72,9 @@ module type TagType = sig
     (* Execute transition actions. *)
   val compile : t -> int -> env -> env
     (* Compile tag to function for executing transition actions.
-       Can be assumed to be called only once for each action. *)
+       Can be assumed to be called only once for each action,
+       before execution, so it may perform more expensive
+       computation than the above [execute] function. *)
 end
 
 module ExprsetTbl(T : TagType) = Hashtbl.Make(struct
