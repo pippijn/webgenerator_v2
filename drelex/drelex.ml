@@ -21,15 +21,7 @@ let split chrs lexbuf =
       else
         lexbuf.refill_buff lexbuf;
 
-    Printf.printf "=> reading '%s'\n"
-      (Char.escaped lexbuf.lex_buffer.[lexbuf.lex_curr_pos]);
-    Printf.printf "buffer_len  = %d\n" lexbuf.lex_buffer_len;
-    Printf.printf "abs_pos     = %d\n" lexbuf.lex_abs_pos;
-    Printf.printf "start_pos   = %d\n" lexbuf.lex_start_pos;
-    Printf.printf "curr_pos    = %d\n" lexbuf.lex_curr_pos;
-    Printf.printf "last_pos    = %d\n" lexbuf.lex_last_pos;
-    Printf.printf "last_action = %d\n" lexbuf.lex_last_action;
-    Printf.printf "eof_reached = %s\n" (string_of_bool lexbuf.lex_eof_reached);
+    Debug.lexbuf_debug lexbuf;
 
     if List.memq lexbuf.lex_buffer.[lexbuf.lex_curr_pos] chrs then (
       (* found a word *)

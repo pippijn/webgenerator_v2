@@ -1,40 +1,9 @@
 open BatPervasives
 open Nfa
 
-let _trace_run = false
-let _trace_lex = true
-
-type state = int * Types.env
-
-type lexbuf = Lexing.lexbuf = {
-  refill_buff : lexbuf -> unit;
-  mutable lex_buffer : string;
-  mutable lex_buffer_len : int;
-  mutable lex_abs_pos : int;
-  mutable lex_start_pos : int;
-  mutable lex_curr_pos : int;
-  mutable lex_last_pos : int;
-  mutable lex_last_action : int;
-  mutable lex_eof_reached : bool;
-  mutable lex_mem : int array;
-  mutable lex_start_p : Lexing.position;
-  mutable lex_curr_p : Lexing.position;
-}
-
-type 'tag nfa = {
-  seen               : Bitset.t;
-  final              : Bitset.t;
-  tables             : (int * int Instruction.t) list array;
-  input              : string;
-  len                : int;
-  varmap             : 'tag array;
-  inversion          : int Types.pattern array;
-  start              : state list;
-  string_of_tag      : 'tag -> string;
-  lexbuf             : lexbuf;
-  mutable last_env   : Types.env;
-}
-
+let _trace_run    = false
+let _trace_lex    = false
+let _trace_lexbuf = false
 
 let rec update_envs0 seen pos env states = function
   | (pd, f) :: tl ->
@@ -70,7 +39,14 @@ let rec goto_next_states0 nfa pos c next_states = function
       );
 
       (* update envs *)
-      let next_states = update_envs nfa.seen pos env next_states next in
+      let next_states =
+        update_envs
+          nfa.seen
+          (pos - nfa.lexbuf.lex_start_pos)
+          env
+          next_states
+          next
+      in
 
       (* recursive call *)
       goto_next_states0 nfa pos c next_states tl
@@ -112,21 +88,24 @@ let rec main_loop nfa states =
   if _trace_run then
     print_newline ();
 
+  if nfa.lexbuf.lex_curr_pos >= nfa.lexbuf.lex_buffer_len then
+    if not nfa.lexbuf.lex_eof_reached then
+      nfa.lexbuf.refill_buff nfa.lexbuf;
+
+  if _trace_lexbuf then
+    Debug.lexbuf_debug nfa.lexbuf;
+
   let pos = nfa.lexbuf.lex_curr_pos in
 
-  if pos <> nfa.len && states <> [] then
-    let c = String.unsafe_get nfa.input pos in
+  if pos <> nfa.lexbuf.lex_buffer_len && states <> [] then
+    let c = String.unsafe_get nfa.lexbuf.lex_buffer pos in
     let states = iteration nfa pos states c in
 
     if _trace_run then (
       Printf.printf "after %s: in %d states\n"
         (Char.escaped c)
         (List.length states);
-      Debug.show_internal
-        nfa.string_of_tag nfa.varmap
-        nfa.inversion
-        nfa.input
-        states;
+      Debug.show_internal nfa states;
     );
 
     update_final nfa pos states;
@@ -135,40 +114,32 @@ let rec main_loop nfa states =
     main_loop nfa states
 
 
-let rec backtrack_loop nfa input =
+let rec backtrack_loop nfa =
   nfa.lexbuf.lex_last_action <- -1;
+
+  nfa.lexbuf.lex_start_pos   <- nfa.lexbuf.lex_curr_pos;
 
   main_loop nfa nfa.start;
 
   if nfa.lexbuf.lex_last_action <> -1 then (
       if _trace_lex then (
         Printf.printf "\027[1;33mLexeme:\027[0m (at pos = %d/%d)\n"
-          nfa.lexbuf.lex_last_pos nfa.len;
-        Debug.show
-          nfa.string_of_tag nfa.varmap
-          input
+          nfa.lexbuf.lex_last_pos
+          nfa.lexbuf.lex_buffer_len;
+        print_endline @@ Show.show<Types.env> nfa.last_env;
+        Debug.show nfa
           nfa.inversion.(nfa.lexbuf.lex_last_action)
           nfa.last_env;
       );
-      nfa.lexbuf.lex_last_pos <- nfa.lexbuf.lex_last_pos + 1;
-      nfa.lexbuf.lex_curr_pos <- nfa.lexbuf.lex_last_pos;
-      backtrack_loop nfa input
+
+      nfa.lexbuf.lex_curr_pos <- nfa.lexbuf.lex_last_pos + 1;
+      nfa.lexbuf.lex_last_pos <- -1;
+
+      backtrack_loop nfa
   )
 
 
-let slurp_lexbuf lexbuf =
-  let open Lexing in
-  while not lexbuf.lex_eof_reached do
-    lexbuf.lex_curr_pos <- lexbuf.lex_buffer_len;
-    lexbuf.refill_buff lexbuf
-  done;
-  String.sub lexbuf.lex_buffer
-    0 lexbuf.lex_buffer_len
-
-
 let run_loop_opt string_of_tag nfa varmap lexbuf =
-  let input = slurp_lexbuf lexbuf in
-
   lexbuf.lex_curr_pos <- 0;
   lexbuf.lex_last_pos <- 0;
 
@@ -180,16 +151,14 @@ let run_loop_opt string_of_tag nfa varmap lexbuf =
     inversion  = nfa.o_inversion;
 
     seen;
-    input;
     varmap;
     string_of_tag;
     lexbuf;
 
     start      = [(nfa.o_start, Types.empty_env)];
-    len        = String.length input;
     last_env   = [];
   } in
 
   Debug.time "backtrack_loop" (fun () ->
-    backtrack_loop nfa input
+    backtrack_loop nfa
   )
