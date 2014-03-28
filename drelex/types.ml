@@ -6,34 +6,50 @@ type position = Pos of int * int
 
 
 (*
-  Store start pos in 10 bits, end pos in 24.
+  Store start pos in 14 bits (or 30 on 64 bit platforms),
+  end pos in 16 (or 32).
+
+  We store these positions relative to the 31 (or 64) bit
+  position [lexbuf.lex_start_pos], so we are unlikely to
+  exceed this space.
 
   End pos can become much larger than start pos (which is usually
   near 0). This is violated with this grammar:
-    a*b + a
+    a*(x:b)
   and a large input of the form
-    aaaa....a
+    aaaa....ab
 
-  In this case, the lexer tries to read to the end for [a*b], only
-  to find that there is no [b], backtracks and matches for [a].
-  This grammar exhibits exponential runtime in the lexer, but if you
-  wait long enough, [start_p] will become larger than 1023.
+  Here, the [start_p] of [x] can be very large, since it is
+  an offset from the complete token's start position.
  *)
 type compressed_position = int
 
-let decode_start_p (pos : compressed_position) = (pos lsr 24) land 0x3ff
-let decode_end_p   (pos : compressed_position) = (pos       ) land 0xfffff
+let start_p_shift = Sys.word_size / 2
+let start_p_mask  = max_int lsr start_p_shift
+let end_p_mask    = (start_p_mask + 1) * 4 - 1
+
+let decode_start_p (pos : compressed_position) =
+  (pos lsr start_p_shift) land start_p_mask
+let decode_end_p   (pos : compressed_position) =
+  (pos                  ) land end_p_mask
 
 let decode_pos (pos : compressed_position) =
   Pos (decode_start_p pos, decode_end_p pos)
 
 let encode_pos start_p end_p =
-  if Options._check_pos_limits then (
-    assert (start_p <= 0x3ff);
-    assert (end_p   <= 0xfffff);
+  let encoded =
+    ((start_p land start_p_mask) lsl start_p_shift) lor
+    ((end_p   land end_p_mask))
+  in
+
+  if Options._check_pos_encoding then (
+    assert (start_p <= start_p_mask);
+    assert (end_p   <= end_p_mask);
+    assert (start_p = decode_start_p encoded);
+    assert (end_p   = decode_end_p   encoded);
   );
-  ((start_p land 0x3ff) lsl 24) lor
-  ((end_p   land 0xfffff))
+
+  encoded
 
 
 (* Unit test *)

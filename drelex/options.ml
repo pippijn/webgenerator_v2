@@ -1,4 +1,4 @@
-let _check_pos_limits	= false
+let _check_pos_encoding	= false
 
 let _trace_con		= false
 
