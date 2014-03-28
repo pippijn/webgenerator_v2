@@ -1,8 +1,6 @@
 open Nfa
 open Types
 
-let _trace_con = false
-
 (**********************************************************
  * :: NFA Construction.
  **********************************************************)
@@ -14,7 +12,7 @@ let filter_final states =
 
 
 let transitions string_of_label varmap p =
-  if _trace_con then (
+  if Options._trace_con then (
     Printf.printf "transitions for %s:\n"
       (Debug.string_of_pattern string_of_label varmap p);
   );
@@ -28,7 +26,7 @@ let transitions string_of_label varmap p =
 
     let pds = Derivative.derive_pat chr p in
 
-    if _trace_con && pds != [] then (
+    if Options._trace_con && pds != [] then (
       Printf.printf "  on '%s':\n"
         (Char.escaped chr);
       List.iter (fun (pd, f) ->

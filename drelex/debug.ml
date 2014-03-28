@@ -2,11 +2,8 @@ open Types
 open Nfa
 
 
-let _timing = true
-
-
 let time label f x =
-  if _timing then
+  if Options._timing then
     let s = Unix.gettimeofday () in
     let r = f x in
     let e = Unix.gettimeofday () in

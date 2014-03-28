@@ -5,23 +5,35 @@ type position = Pos of int * int
   deriving (Show)
 
 
+(*
+  Store start pos in 10 bits, end pos in 24.
+
+  End pos can become much larger than start pos (which is usually
+  near 0). This is violated with this grammar:
+    a*b + a
+  and a large input of the form
+    aaaa....a
+
+  In this case, the lexer tries to read to the end for [a*b], only
+  to find that there is no [b], backtracks and matches for [a].
+  This grammar exhibits exponential runtime in the lexer, but if you
+  wait long enough, [start_p] will become larger than 1023.
+ *)
 type compressed_position = int
 
-let check_pos_limits = false
-
-let decode_start_p (pos : compressed_position) = (pos lsr 16) land 0x3fff
-let decode_end_p   (pos : compressed_position) = (pos       ) land 0xffff
+let decode_start_p (pos : compressed_position) = (pos lsr 24) land 0x3ff
+let decode_end_p   (pos : compressed_position) = (pos       ) land 0xfffff
 
 let decode_pos (pos : compressed_position) =
   Pos (decode_start_p pos, decode_end_p pos)
 
 let encode_pos start_p end_p =
-  if check_pos_limits then (
-    assert (start_p <= 0x3fff);
-    assert (end_p   <= 0xffff);
+  if Options._check_pos_limits then (
+    assert (start_p <= 0x3ff);
+    assert (end_p   <= 0xfffff);
   );
-  ((start_p land 0x3fff) lsl 16) lor
-  ((end_p   land 0xffff)       )
+  ((start_p land 0x3ff) lsl 24) lor
+  ((end_p   land 0xfffff))
 
 
 (* Unit test *)
@@ -40,7 +52,7 @@ let () =
   in
 
   assert (check_encode 0 0);
-  assert (check_encode 16383 10000);
+  assert (check_encode 1023 10000);
 ;;
 
 

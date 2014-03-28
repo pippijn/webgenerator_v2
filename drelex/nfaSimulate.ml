@@ -1,10 +1,6 @@
 open BatPervasives
 open Nfa
 
-let _trace_run    = false
-let _trace_lex    = false
-let _trace_lexbuf = false
-
 let rec update_envs0 seen pos env states next idx =
   if idx = Array.length next then
     states
@@ -36,7 +32,7 @@ let rec goto_next_states0 nfa lexbuf pos c next_states = function
           (state * CharSet.size + Char.code c)
       in
 
-      if _trace_run then (
+      if Options._trace_run then (
         Printf.printf "state %d -> [%s]\n"
           state (next
                  |> Array.map (string_of_int % fst)
@@ -91,14 +87,14 @@ let rec update_final nfa lexbuf pos = function
 
 
 let rec read_token nfa lexbuf states =
-  if _trace_run then
+  if Options._trace_run then
     print_newline ();
 
   if lexbuf.lex_curr_pos >= lexbuf.lex_buffer_len then
     if not lexbuf.lex_eof_reached then
       lexbuf.refill_buff lexbuf;
 
-  if _trace_lexbuf then
+  if Options._trace_lexbuf then
     Debug.lexbuf_debug lexbuf;
 
   let pos = lexbuf.lex_curr_pos in
@@ -107,7 +103,7 @@ let rec read_token nfa lexbuf states =
     let c = String.unsafe_get lexbuf.lex_buffer pos in
     let states = iteration nfa lexbuf pos states c in
 
-    if _trace_run then (
+    if Options._trace_run then (
       Printf.printf "after %s: in %d states\n"
         (Char.escaped c)
         (List.length states);
@@ -130,7 +126,7 @@ let rec backtrack_loop nfa lexbuf =
   read_token nfa lexbuf nfa.start;
 
   if lexbuf.lex_last_action <> -1 then (
-    if _trace_lex then (
+    if Options._trace_lex then (
       Printf.printf "\027[1;33mLexeme:\027[0m (at pos = %d/%d)\n"
         lexbuf.lex_last_pos
         lexbuf.lex_buffer_len;
