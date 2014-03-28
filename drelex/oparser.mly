@@ -29,6 +29,7 @@
 %token TOK_PLUS			/* "+"	*/
 %token TOK_PIPE			/* "|"	*/
 %token TOK_AMPERSAND		/* "&"	*/
+%token TOK_HASH			/* "#"	*/
 %token TOK_MINUS		/* "-"	*/
 %token TOK_EQUALS		/* "="	*/
 %token TOK_COMMA		/* ","	*/

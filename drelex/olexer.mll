@@ -51,6 +51,7 @@
     | TOK_TILDE -> "TOK_TILDE"
     | TOK_PIPE -> "TOK_PIPE"
     | TOK_AMPERSAND -> "TOK_AMPERSAND"
+    | TOK_HASH -> "TOK_HASH"
     | TOK_CARET -> "TOK_CARET"
     | TOK_MINUS -> "TOK_MINUS"
 
@@ -195,6 +196,7 @@ and normal state = parse
 | '+'					{ TOK_PLUS }
 | '|'					{ TOK_PIPE }
 | '&'					{ TOK_AMPERSAND }
+| '#'					{ TOK_HASH }
 | '-'					{ TOK_MINUS }
 | '='					{ TOK_EQUALS }
 | ','					{ TOK_COMMA }

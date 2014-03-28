@@ -5,25 +5,26 @@ let _trace_run    = false
 let _trace_lex    = false
 let _trace_lexbuf = false
 
-let rec update_envs0 seen pos env states = function
-  | (pd, f) :: tl ->
-      let states =
-        if Bitset.mem seen pd then (
-          states
-        ) else (
-          Bitset.set seen pd;
-          (* This is slow if there are many states, but there are
-             rarely more than 10, and usually less than 4. *)
-          states @ [(pd, Tag.execute f pos env)]
-        )
-      in
-      update_envs0 seen pos env states tl
+let rec update_envs0 seen pos env states next idx =
+  if idx = Array.length next then
+    states
+  else
+    let states =
+      let (pd, f) = Array.unsafe_get next idx in
+      if Bitset.mem seen pd then (
+        states
+      ) else (
+        Bitset.set seen pd;
+        (* This is slow if there are many states, but there are
+           rarely more than 10, and usually less than 4. *)
+        states @ [(pd, Tag.execute f pos env)]
+      )
+    in
 
-  | [] ->
-      states
+    update_envs0 seen pos env states next (idx + 1)
 
 let update_envs seen pos env states next =
-  update_envs0 seen pos env states next
+  update_envs0 seen pos env states next 0
 
 
 let rec goto_next_states0 nfa pos c next_states = function
@@ -36,7 +37,10 @@ let rec goto_next_states0 nfa pos c next_states = function
 
       if _trace_run then (
         Printf.printf "state %d -> [%s]\n"
-          state (String.concat ";" (List.map (string_of_int % fst) next))
+          state (next
+                 |> Array.map (string_of_int % fst)
+                 |> Array.to_list
+                 |> String.concat ";")
       );
 
       (* update envs *)
@@ -142,10 +146,10 @@ let run string_of_label nfa varmap lexbuf =
   lexbuf.lex_curr_pos <- 0;
   lexbuf.lex_last_pos <- 0;
 
-  let seen = Bitset.create (Array.length nfa.o_nfa / CharSet.size) in
+  let seen = Bitset.create (Array.length nfa.o_tables / CharSet.size) in
 
   let nfa = {
-    tables     = nfa.o_nfa;
+    tables     = nfa.o_tables;
     final      = nfa.o_final;
     inversion  = nfa.o_inversion;
 
@@ -158,6 +162,7 @@ let run string_of_label nfa varmap lexbuf =
     last_env   = [];
   } in
 
+  Gc.compact ();
   Debug.time "backtrack_loop" (fun () ->
     backtrack_loop nfa
   )

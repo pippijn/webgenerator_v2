@@ -101,17 +101,18 @@ let optimised (nfa, start) =
   ) hashcons;
 
   (* next, map all patterns to their id *)
-  let o_nfa = Array.make (nstates * 256) [] in
+  let o_tables = Array.make (nstates * 256) [||] in
   Hashtbl.iter (fun p xs ->
     let p = Hashtbl.find hashcons p in
     Array.iteri (fun i x ->
-      o_nfa.(p * 256 + i) <-
+      o_tables.(p * 256 + i) <-
         BatList.map (fun (pd, f) ->
           Hashtbl.find hashcons pd, f
-        ) x;
+        ) x
+        |> Array.of_list
     ) xs;
   ) nfa;
 
   let o_start = Hashtbl.find hashcons start in
 
-  { o_nfa; o_start; o_inversion; o_final; }
+  { o_tables; o_start; o_inversion; o_final; }
