@@ -81,18 +81,29 @@ let () =
       let ast = Simplify.simplify ast in
       (*print_endline @@ Show.show<Ast.t> ast;*)
 
-      let pat = ExtractPattern.extract_rules_program ast in
-      let pat = Language.compute_nullable pat in
-      let npat, varmap = Pattern.number_pattern pat in
+      let pats = ExtractPattern.extract_rules_program ast in
+      let pats = List.map Language.compute_nullable pats in
+      let pats = List.map Pattern.number_pattern pats in
 
       (*print_endline @@ Show.show<string Types.pattern> pat;*)
 
-      let nfa = NfaConstruct.build Util.identity varmap npat in
-      Printf.printf "%d states, %d transitions\n"
-        (NfaConstruct.state_count nfa)
-        (NfaConstruct.transition_count nfa);
+      let nfas =
+        List.map (fun (npat, varmap) ->
+          let nfa = NfaConstruct.build Util.identity varmap npat in
+          Printf.printf "%d states, %d transitions\n"
+            (NfaConstruct.state_count nfa)
+            (NfaConstruct.transition_count nfa);
+          nfa, varmap
+        ) pats
+      in
 
-      let nfa = NfaConstruct.optimised nfa in
+      let nfas =
+        List.map (fun (nfa, varmap) ->
+          NfaConstruct.optimised nfa, varmap
+        ) nfas
+      in
+
+      let nfa, varmap = List.hd nfas in
 
       let fh = open_in input in
       let lexbuf = Lexing.from_channel fh in

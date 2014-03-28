@@ -1,10 +1,13 @@
 open BatPervasives
 open Nfa
 
-let _trace_run = true
+let _trace_run = false
 let _trace_lex = true
 
 type state = int * Types.env
+
+let invalid_state = (-1, [])
+let invalid_pos   = -1
 
 type 'tag nfa = {
   seen      : Bitset.t;
@@ -117,6 +120,9 @@ let rec main_loop nfa pos states =
 
 
 let rec run_optimised_loop pos nfa input =
+  nfa.last_final <- invalid_state;
+  nfa.last_pos   <- invalid_pos;
+
   let state = main_loop nfa pos nfa.start in
 
   match state with
@@ -124,7 +130,8 @@ let rec run_optimised_loop pos nfa input =
       ()
   | ((state, env), pos) ->
       if _trace_lex then (
-        Printf.printf "\027[1;33mLexeme:\027[0m (at pos = %d)\n" pos;
+        Printf.printf "\027[1;33mLexeme:\027[0m (at pos = %d/%d)\n"
+          pos nfa.len;
         Debug.show
           nfa.string_of_tag nfa.varmap
           input
@@ -161,8 +168,8 @@ let run_loop_opt string_of_tag nfa varmap lexbuf =
 
     start      = [(nfa.o_start, Types.empty_env)];
     len        = String.length input;
-    last_final = (-1, []);
-    last_pos   = -1;
+    last_final = invalid_state;
+    last_pos   = invalid_pos;
   } in
 
   Debug.time "run_optimised_loop" (fun () ->

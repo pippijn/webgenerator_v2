@@ -53,13 +53,14 @@ let extract_rules = function
   | Rule (re, code) ->
       VarGroup (Maybe, Sloc.value code, extract_pattern re)
 
-let extract_rules_lexers = function
+let extract_rules_lexer = function
   | Lexer (_, _, rules) ->
       BatList.map extract_rules rules
 
 let extract_rules_program = function
-  | Program (_, _, [lexers], _) ->
-      BatList.reduce
-        (fun l r -> Choice (Maybe, r, l))
-        (List.rev (extract_rules_lexers lexers))
-  | _ -> assert false
+  | Program (_, _, lexers, _) ->
+      List.map (fun lexer ->
+        BatList.reduce
+          (fun l r -> Choice (Maybe, r, l))
+          (List.rev (extract_rules_lexer lexer))
+      ) lexers
