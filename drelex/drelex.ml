@@ -81,12 +81,14 @@ let () =
       let ast = Simplify.simplify ast in
       (*print_endline @@ Show.show<Ast.t> ast;*)
 
+      Codegen.codegen ast;
+
       let pats = ExtractPattern.extract_rules_program ast in
 
       (*print_endline @@ Show.show<string Types.pattern> pat;*)
 
       let nfas =
-        List.map (NfaConstruct.construct Util.identity) pats
+        List.map NfaConstruct.construct pats
       in
 
       Diagnostics.print ();
@@ -97,6 +99,11 @@ let () =
       let fh = open_in input in
       let lexbuf = Lexing.from_channel fh in
       NfaSimulate.run nfa lexbuf;
+      close_in fh;
+
+      let fh = open_in input in
+      let lexbuf = Lexing.from_channel fh in
+      (*TestNfa.token lexbuf;*)
       close_in fh;
 
   | _ ->

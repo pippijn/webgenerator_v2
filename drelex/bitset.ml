@@ -5,10 +5,10 @@ let create n =
   Array.create n false
 
 let mem seen x =
-  Array.unsafe_get seen (Types.Label.value x)
+  Array.unsafe_get seen (Label.value x)
 
 let set seen x =
-  Array.unsafe_set seen (Types.Label.value x) true
+  Array.unsafe_set seen (Label.value x) true
 
 let unset seen x =
-  Array.unsafe_set seen (Types.Label.value x) false
+  Array.unsafe_set seen (Label.value x) false

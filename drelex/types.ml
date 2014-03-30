@@ -16,58 +16,6 @@ type 'label pattern =
   deriving (Show)
 
 
-module Label : sig
-
-  type t = private int
-
-  module Show_t : Deriving_Show.Show
-    with type a = t
-
-  val make : int -> t
-  val rename : t -> t
-  val value : t -> int
-  val to_string : t -> string
-
-  val name : ('a -> string) -> 'a array -> t -> string
-
-end = struct
-
-  type t = int
-    deriving (Show)
-
-  let make x =
-    if Options._check_labels then assert (x >= 0);
-    x + 1
-
-  let rename x =
-    if Options._check_labels then assert (x > 0);
-    -x
-
-  let value x =
-    if Options._check_labels then assert (x > 0);
-    x - 1
-
-  let to_string = string_of_int
-
-  let is_renamed x = x < 0
-
-  let name string_of_label varmap x =
-    let varidx =
-      if is_renamed x then
-        value (-x)
-      else
-        value x
-    in
-
-    let name = string_of_label varmap.(varidx) in
-    if is_renamed x then
-      name ^ "'"
-    else
-      name
-
-end
-
-
 type position = Pos of Label.t * int * int
   deriving (Show)
 

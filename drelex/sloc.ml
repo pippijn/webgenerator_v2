@@ -52,5 +52,5 @@ let empty_string = dummy ""
 let output_string out (t, s, e) =
   output_string out t
 
-let pp_print_string fmt (t, s, e) =
+let pp fmt (t, s, e) =
   Format.pp_print_string fmt t

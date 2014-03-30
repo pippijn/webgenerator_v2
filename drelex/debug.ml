@@ -14,10 +14,10 @@ let time label f x =
     f x
 
 
-let string_of_pattern string_of_label varmap =
+let string_of_pattern varmap =
   Print.string_of_pattern @@
     fun label ->
-      string_of_label (Array.get varmap (Label.value label))
+      (Array.get varmap (Label.value label))
 
 
 let show ?(pre="") nfa lexbuf p env =
@@ -30,7 +30,7 @@ let show ?(pre="") nfa lexbuf p env =
   print_endline (
     "  state: " ^
     pre ^
-    string_of_pattern nfa.string_of_label nfa.varmap p ^
+    string_of_pattern nfa.varmap p ^
     is_final
   );
   print_endline (
@@ -38,7 +38,7 @@ let show ?(pre="") nfa lexbuf p env =
     String.concat ", " (
       List.rev_map (fun (Pos (x, start_p, end_p)) ->
         Printf.sprintf "(%s: \"%s\")"
-          (Label.name nfa.string_of_label nfa.varmap x)
+          (Label.name nfa.varmap x)
           (String.escaped (String.sub lexbuf.lex_buffer
                              (lexbuf.lex_start_pos + start_p)
                              (end_p - start_p + 1)))

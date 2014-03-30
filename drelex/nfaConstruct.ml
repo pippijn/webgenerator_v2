@@ -11,10 +11,10 @@ let filter_final states =
   ) states
 
 
-let transitions string_of_label varmap p =
+let transitions varmap p =
   if Options._trace_con then (
     Printf.printf "transitions for %s:\n"
-      (Debug.string_of_pattern string_of_label varmap p);
+      (Debug.string_of_pattern varmap p);
   );
   let transitions_for_char n =
     let chr = Char.chr n in
@@ -31,8 +31,8 @@ let transitions string_of_label varmap p =
         (Char.escaped chr);
       List.iter (fun (pd, f) ->
         Printf.printf "    %-30s\t%s\n"
-          (Debug.string_of_pattern string_of_label varmap pd)
-          (Tag.to_string (Label.name string_of_label varmap) f)
+          (Debug.string_of_pattern varmap pd)
+          (Tag.to_string (Label.name varmap) f)
       ) pds;
     );
 
@@ -41,25 +41,25 @@ let transitions string_of_label varmap p =
   Array.init 256 transitions_for_char
 
 
-let rec build_next string_of_label varmap nfa = function
+let rec build_next varmap nfa = function
   | [] -> ()
   | (pd, _) :: xs ->
-      build string_of_label varmap nfa pd;
-      build_next string_of_label varmap nfa xs
+      build varmap nfa pd;
+      build_next varmap nfa xs
 
-and build string_of_label varmap nfa p =
+and build varmap nfa p =
   if not (Hashtbl.mem nfa p) then (
-    let xs = transitions string_of_label varmap p in
+    let xs = transitions varmap p in
     Hashtbl.add nfa p xs;
     for i = 0 to Array.length xs - 1 do
-      build_next string_of_label varmap nfa (Array.unsafe_get xs i)
+      build_next varmap nfa (Array.unsafe_get xs i)
     done;
   )
 
 
-let build string_of_label varmap start =
+let build varmap start =
   let nfa = Hashtbl.create 10 in
-  build string_of_label varmap nfa start;
+  build varmap nfa start;
   nfa, start
 
 
@@ -75,14 +75,14 @@ let transition_count (nfa, start) =
   ) nfa 0
 
 
-let optimised (type a) (nfa, (start : a pattern)) : a optimised_nfa =
+let optimised (nfa, start) =
   let nstates = Hashtbl.length nfa in
 
   let o_final = Bitset.create nstates in
 
   (* first, build hashcons and nullable bitset *)
   let hashcons = Hashtbl.create nstates in
-  Hashtbl.iter (fun (p : a pattern) xs ->
+  Hashtbl.iter (fun p xs ->
     assert (not (Hashtbl.mem hashcons p));
     let id = Label.make (Hashtbl.length hashcons) in
     Hashtbl.add hashcons p id;
@@ -119,13 +119,13 @@ let optimised (type a) (nfa, (start : a pattern)) : a optimised_nfa =
   }
 
 
-let construct string_of_label pat =
+let construct pat =
   let pat = Language.compute_nullable pat in
   let pat, varmap = Pattern.number_pattern pat in
 
   let nfa =
     Debug.time "build nfa"
-      (build string_of_label varmap) pat
+      (build varmap) pat
   in
   Printf.printf "%d states, %d transitions\n"
     (state_count nfa)
@@ -145,7 +145,6 @@ let construct string_of_label pat =
 
     seen;
     varmap;
-    string_of_label;
 
     start      = [(nfa.o_start, Types.empty_env)];
     last_env   = [];
