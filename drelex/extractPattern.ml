@@ -34,8 +34,9 @@ let rec extract_pattern = function
           | _ -> assert false
         ) l;
       LetterSet set
-  | Star re ->
+  | Ast.Star re ->
       Types.Star (extract_pattern re)
+      |> SimplifyPattern.simplify
   | Negation re ->
       Not (Maybe, extract_pattern re)
   | Binding (re, name) ->

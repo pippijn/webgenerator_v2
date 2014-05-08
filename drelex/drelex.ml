@@ -81,7 +81,7 @@ let () =
       let ast = Simplify.simplify ast in
       (*print_endline @@ Show.show<Ast.t> ast;*)
 
-      Codegen.codegen ast;
+      (*Codegen.codegen ast;*)
 
       let pats = ExtractPattern.extract_rules_program ast in
 

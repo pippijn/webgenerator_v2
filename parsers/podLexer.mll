@@ -16,18 +16,19 @@ let digit = ['0'-'9']
 let alnum = alpha | digit
 
 
-let format_text1 = [^'<''>']+
-let format_text2 = ~( _* " >>" _* )
-(*let format_text2 = ([^' ']|' '[^'>']|' ''>'[^'>'])+*)
+let format_text1 = ([^'<''>'])+
+(*let format_text2 = ~( _* " >>" _* )*)
+let format_text2 = ([^' ']|' '[^'>']|' ''>'[^'>'])*
 
 let format = (upper as kind) "<"   space* (format_text1 as text) space*   ">"
            | (upper as kind) "<< " space* (format_text2 as text) space* " >>"
 
 
-(*let link_text1 = ([^'<''>']#['|'])+*)
-let link_text1 = format_text1 & [^'|']+
-(*let link_text2 = ([^' ''|']|' '[^'>''|']|' ''>'[^'>''|'])+*)
-let link_text2 = format_text2 & [^'|']+
+(*let link_text1 = ([^'<''>''|'])+*)
+let link_text1 = ([^'<''>']#['|'])+
+(*let link_text1 = format_text1 & [^'|']+*)
+let link_text2 = ([^' ''|']|' '[^'>''|']|' ''>'[^'>''|'])+
+(*let link_text2 = format_text2 & [^'|']+*)
 
 
 let link
@@ -39,8 +40,8 @@ let link
       (format_text1 as link) ">"
 
 
-let word = ~( _* (format|space|'\n') _* )
-(*let word = ([^' ''\t''\n''<''>']+|['<''>'])*)
+(*let word = ~( _* (format|space|'\n') _* )*)
+let word = ([^' ''\t''\n''<''>']+|['<''>'])
 
 
 rule token = parse

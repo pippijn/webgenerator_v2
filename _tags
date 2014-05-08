@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: a51b102eae8850c1a997a284f1da4811)
+# DO NOT EDIT (digest: 77e55391ee6b7962bc835f238e343637)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -25,6 +25,18 @@
 "webgen/webgen.cma": use_libwebgen_stubs
 <webgen/*.ml{,i}>: pkg_unix
 "webgen/ml_Cwd.c": pkg_unix
+# Library parsers
+"parsers/parsers.cmxs": use_parsers
+"parsers/pod.cmx": for-pack(Parsers)
+"parsers/podLexer.cmx": for-pack(Parsers)
+"parsers/podParser.cmx": for-pack(Parsers)
+# Executable generator
+"generator/generator.byte": pkg_unix
+"generator/generator.byte": use_parsers
+"generator/generator.byte": use_webgen
+<generator/*.ml{,i}>: pkg_unix
+<generator/*.ml{,i}>: use_parsers
+<generator/*.ml{,i}>: use_webgen
 # OASIS_STOP
 
 true: debug, annot

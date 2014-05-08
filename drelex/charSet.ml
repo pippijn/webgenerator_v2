@@ -33,11 +33,11 @@ let is_wildcard set =
 
 let to_string set =
   if is_wildcard set then
-    "\".\""
+    "."
   else
     let buf = Buffer.create size in
 
-    Buffer.add_string buf "\"[";
+    Buffer.add_string buf "[";
 
     let set =
       if is_mostly_true set then (
@@ -59,7 +59,7 @@ let to_string set =
             ()
       ) set;
 
-    Buffer.add_string buf "]\"";
+    Buffer.add_string buf "]";
 
     Buffer.contents buf
 

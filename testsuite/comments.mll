@@ -6,12 +6,13 @@ type t =
 }
 
 rule token = parse
-| "/*" ~( _* "*/" _* ) "*/"		{ Comment }
+| "/*" (~( _* "*/" _* )) "*/"		{ Comment }
+(*| "/*" ~( _* "*/" ['\001'-'\255']* ) "*/"		{ Comment }*)
 (*| "/*" ([^'*']|'*'[^'/'])* "*/"		{ Comment }*)
-| _					{ Any }
+(*| _					{ Any }*)
 
-| eof					{ Eof }
-| _ as c				{ failwith (Char.escaped c) }
+(*| eof					{ Eof }*)
+(*| _ as c				{ failwith (Char.escaped c) }*)
 
 
 {

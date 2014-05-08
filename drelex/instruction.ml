@@ -5,7 +5,10 @@ type t = instruction
 
 let identity = Identity
 let update x = Update x
-let iterate p = Iterate (Pattern.vars_of_pattern p)
+let iterate p =
+  match Pattern.vars_of_pattern p with
+  | [] -> Identity
+  | vars -> Iterate vars
 let compose f g =
   match f, g with
   | Identity, f
